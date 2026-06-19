@@ -126,6 +126,19 @@ header{width:100%;display:flex;justify-content:space-between;align-items:center;
 .typing-dots .dot:nth-child(2){animation-delay:.15s;}
 .typing-dots .dot:nth-child(3){animation-delay:.3s;}
 @keyframes bounce{0%,80%,100%{transform:scale(.6);opacity:.5;}40%{transform:scale(1);opacity:1;}}
+/* Install button */
+.install-btn{width:100%;margin-top:10px;padding:12px;border-radius:11px;border:none;background:linear-gradient(135deg,#22d3a0,#1ab38a);color:white;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;box-shadow:0 4px 18px rgba(34,211,160,.35);animation:glow 2.5s ease-in-out infinite;}
+.install-btn.hidden{display:none;}
+@keyframes glow{0%,100%{box-shadow:0 4px 18px rgba(34,211,160,.35);}50%{box-shadow:0 4px 28px rgba(34,211,160,.6);}}
+/* Polish: smoother gradients and depth */
+body{background:radial-gradient(ellipse at top, #14141f 0%, #0a0a0f 60%);}
+.bubble{box-shadow:0 2px 12px rgba(0,0,0,.25);}
+.btn{transition:all .18s cubic-bezier(.4,0,.2,1);}
+.btn:active{transform:scale(.96);}
+.btn.selected{box-shadow:0 3px 12px rgba(108,99,255,.35);}
+.avatar-inner{box-shadow:0 6px 24px rgba(108,99,255,.4);}
+.call-btn.dial{transition:transform .2s,box-shadow .2s;}
+.call-btn.dial:hover{box-shadow:0 8px 28px rgba(34,211,160,.5);}
 </style>
 </head>
 <body>
@@ -157,24 +170,15 @@ header{width:100%;display:flex;justify-content:space-between;align-items:center;
   </div>
   <div class="section">
     <div class="sec-label">Nova's Voice</div>
-    <div class="btn-grid four">
-      <button class="btn" data-voice="kid-boy" onclick="selectVoice(this)">👦<small>Boy</small></button>
-      <button class="btn" data-voice="kid-girl" onclick="selectVoice(this)">👧<small>Girl</small></button>
+    <div class="btn-grid two">
       <button class="btn" data-voice="man" onclick="selectVoice(this)">👨<small>Man</small></button>
       <button class="btn selected" data-voice="woman" onclick="selectVoice(this)">👩<small>Woman</small></button>
     </div>
   </div>
-  <div class="section">
-    <div class="sec-label">Your native language (for translation)</div>
-    <div class="btn-grid five">
-      <button class="btn selected" data-native="none" onclick="selectNative(this)">None</button>
-      <button class="btn" data-native="Urdu" onclick="selectNative(this)">اردو</button>
-      <button class="btn" data-native="Pashto" onclick="selectNative(this)">پښتو</button>
-      <button class="btn" data-native="Persian" onclick="selectNative(this)">فارسی</button>
-      <button class="btn" data-native="Spanish" onclick="selectNative(this)">Esp.</button>
-    </div>
-  </div>
 </div>
+
+<!-- Install button (shows when PWA install is available) -->
+<button class="install-btn hidden" id="installBtn" onclick="installApp()">📲  Install LinguaCall on your phone</button>
 
 <div class="tutor-area">
   <div class="avatar-ring">
@@ -339,10 +343,8 @@ const CIT_QUESTIONS = [
 ];
 
 const VOICE_PROFILES = {
-  'kid-boy':  { label: '👦 Boy',   pitch: 1.7,  rateMod: 1.0, prefersMale: true,  prefersFemale: false },
-  'kid-girl': { label: '👧 Girl',  pitch: 1.85, rateMod: 1.0, prefersMale: false, prefersFemale: true  },
-  'man':      { label: '👨 Man',   pitch: 0.82, rateMod: 1.0, prefersMale: true,  prefersFemale: false },
-  'woman':    { label: '👩 Woman', pitch: 1.1,  rateMod: 1.0, prefersMale: false, prefersFemale: true  }
+  'man':   { label: '👨 Man',   pitch: 0.9, rateMod: 1.0, prefersMale: true,  prefersFemale: false },
+  'woman': { label: '👩 Woman', pitch: 1.0, rateMod: 1.0, prefersMale: false, prefersFemale: true  }
 };
 
 const LEVEL_CONFIG = {
@@ -445,9 +447,7 @@ function showNewUserForm(firstTime){
     <label>Date of birth</label>
     <input id="newDob" type="date" />
     <label>Nova's voice</label>
-    <div class="btn-grid four" style="margin-top:4px;">
-      <button class="btn" data-modal-voice="kid-boy" onclick="pickModalVoice(this)">👦<small>Boy</small></button>
-      <button class="btn" data-modal-voice="kid-girl" onclick="pickModalVoice(this)">👧<small>Girl</small></button>
+    <div class="btn-grid two" style="margin-top:4px;">
       <button class="btn" data-modal-voice="man" onclick="pickModalVoice(this)">👨<small>Man</small></button>
       <button class="btn selected" data-modal-voice="woman" onclick="pickModalVoice(this)">👩<small>Woman</small></button>
     </div>
@@ -533,7 +533,6 @@ function renderSubtopicGrid(){
 // ============= Selectors =============
 function selectLevel(b){ document.querySelectorAll('[data-level]').forEach(x=>x.classList.remove('selected')); b.classList.add('selected'); selectedLevel=b.dataset.level; persistProfile(); }
 function selectVoice(b){ document.querySelectorAll('[data-voice]').forEach(x=>x.classList.remove('selected')); b.classList.add('selected'); selectedVoice=b.dataset.voice; persistProfile(); previewVoice(); }
-function selectNative(b){ document.querySelectorAll('[data-native]').forEach(x=>x.classList.remove('selected')); b.classList.add('selected'); selectedNative=b.dataset.native; persistProfile(); }
 
 function previewVoice(){
   synth.cancel();
@@ -548,14 +547,23 @@ function pickSynthVoice(){
   const voices=synth.getVoices();
   if(!voices.length) return null;
   const vp=VOICE_PROFILES[selectedVoice];
+  const lower=v=>v.name.toLowerCase();
+  // Get all English voices
+  const enVoices=voices.filter(v=>v.lang.toLowerCase().startsWith('en'));
+  if(!enVoices.length) return null;
+  // Prefer Google voices (much higher quality on Android Chrome)
+  const googleVoices=enVoices.filter(v=>lower(v).includes('google'));
+  const pool=googleVoices.length?googleVoices:enVoices;
+  // Filter by gender hint
   const fH=['female','samantha','karen','sarah','allison','victoria','susan','tessa','fiona','moira','zoe','google us english','google uk english female'];
   const mH=['male','daniel','george','mark','fred','alex','tom','oliver','google uk english male'];
-  const cs=voices.filter(v=>v.lang.toLowerCase().startsWith('en'));
-  if(!cs.length) return null;
-  const lower=v=>v.name.toLowerCase();
-  let pool=cs;
-  if(vp.prefersFemale){ const f=cs.filter(v=>fH.some(h=>lower(v).includes(h))); if(f.length)pool=f; }
-  else if(vp.prefersMale){ const m=cs.filter(v=>mH.some(h=>lower(v).includes(h))); if(m.length)pool=m; }
+  if(vp.prefersFemale){
+    const f=pool.filter(v=>fH.some(h=>lower(v).includes(h)));
+    if(f.length) return f[0];
+  } else if(vp.prefersMale){
+    const m=pool.filter(v=>mH.some(h=>lower(v).includes(h)));
+    if(m.length) return m[0];
+  }
   return pool[0];
 }
 
@@ -626,11 +634,7 @@ function buildSystem(){
   const lc=LEVEL_CONFIG[selectedLevel];
   const topicCfg=TOPICS[selectedTopic];
   const subCfg=topicCfg.subtopics[selectedSubtopic];
-  const nativeName=NATIVE_NAMES[selectedNative];
   const samples=(subCfg.samples||[]).map(s=>`  • "${s}"`).join('\n');
-  const nativeInstr=nativeName
-    ? `The learner's native language is ${nativeName}. Provide a short ${nativeName} translation of your reply in the "native_translation" field, written in ${nativeName} script.`
-    : `Leave "native_translation" as empty string.`;
 
   let modeNote='';
   if(selectedTopic==='basic'){
@@ -646,7 +650,7 @@ function buildSystem(){
     else if(selectedSubtopic==='cit_listen'){ modeNote=`Slowly say one important citizenship-related sentence. Ask learner to repeat it. Praise effort, gently correct.`; }
   }
 
-  return `You are Nova, a warm and patient ${selectedLang} tutor.
+  return `You are Nova, a warm and patient English tutor.
 
 LEARNER:
 - Name: ${currentUser?currentUser.name:'Learner'}
@@ -666,12 +670,12 @@ CRITICAL RULES:
 1. STAY on "${subCfg.name}" for the WHOLE conversation. Do NOT jump to other topics.
 2. After the learner speaks, ALWAYS acknowledge what they said FIRST (e.g., "Good!", "I understand.", "Nice sentence.") before your next sentence.
 3. Keep replies SHORT for ${lc.label} level. Do not overload the learner.
-4. ${nativeInstr}
+4. Reply in English only.
 
 OUTPUT FORMAT — STRICT JSON ONLY, no markdown, no backticks:
 {
   "reply": "your short conversational reply, ending with a question or prompt about THE SAME sub-topic",
-  "native_translation": "translation into ${nativeName||'none'}, or empty string",
+  "native_translation": "",
   "correction": {
     "has_error": true or false,
     "original": "the learner's exact sentence (or empty string if system note in brackets)",
@@ -681,6 +685,7 @@ OUTPUT FORMAT — STRICT JSON ONLY, no markdown, no backticks:
 }
 
 Rules:
+- Always leave "native_translation" as empty string.
 - If learner input was a system note in [brackets], correction.has_error=false and original="".
 - If learner's sentence was perfect, has_error=false but put their sentence in "original" so we can praise.
 - Never repeat the same reply twice in a row.
@@ -779,7 +784,7 @@ function startListen(){
     if(combined){
       document.getElementById('transText').textContent='"'+combined+'"';
       if(endpointTimer) clearTimeout(endpointTimer);
-      endpointTimer=setTimeout(()=>{ finalizeUserTurn(); },3000);
+      endpointTimer=setTimeout(()=>{ finalizeUserTurn(); },1800);
     }
   };
 
@@ -1091,6 +1096,30 @@ function startWaveAnim(){
   }
   draw();
 }
+
+// ============= PWA Install =============
+let deferredInstallPrompt=null;
+window.addEventListener('beforeinstallprompt',(e)=>{
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  document.getElementById('installBtn').classList.remove('hidden');
+});
+function installApp(){
+  if(!deferredInstallPrompt){
+    showToast('In Chrome menu (⋮), tap "Add to Home screen"','ok');
+    return;
+  }
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.then((choice)=>{
+    if(choice.outcome==='accepted'){ showToast('Installing… check your home screen!','ok'); }
+    deferredInstallPrompt=null;
+    document.getElementById('installBtn').classList.add('hidden');
+  });
+}
+window.addEventListener('appinstalled',()=>{
+  document.getElementById('installBtn').classList.add('hidden');
+  showToast('LinguaCall installed! 🎉','ok');
+});
 
 // ============= INIT =============
 window.speechSynthesis.onvoiceschanged=()=>{};
