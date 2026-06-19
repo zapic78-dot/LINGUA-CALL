@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#6c63ff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -11,172 +11,174 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>LinguaCall — AI Language Tutor</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap');
-  :root {
-    --bg:#0a0a0f;--surface:#13131a;--surface2:#1c1c28;--border:#2a2a3a;
-    --accent:#6c63ff;--accent2:#a78bfa;--green:#22d3a0;--red:#ff5c72;
-    --text:#f0f0f8;--muted:#7070a0;
-  }
-  *{margin:0;padding:0;box-sizing:border-box;}
-  body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding-bottom:30px;}
-  header{width:100%;max-width:480px;padding:18px 24px 0;display:flex;justify-content:space-between;align-items:center;}
-  .logo{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;letter-spacing:-0.5px;background:linear-gradient(135deg,var(--accent2),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-  .status-pill{font-size:11px;font-weight:500;padding:4px 10px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);letter-spacing:0.5px;text-transform:uppercase;}
-  .status-pill.active{color:var(--green);border-color:var(--green);background:rgba(34,211,160,0.08);}
-  .status-pill.listening{color:var(--accent2);border-color:var(--accent2);background:rgba(107,99,255,0.08);}
-  .status-pill.error{color:var(--red);border-color:var(--red);background:rgba(255,92,114,0.08);}
-
-  .section{width:100%;max-width:480px;padding:16px 24px 0;}
-  .sec-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;font-weight:600;}
-
-  .lang-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;}
-  .lang-btn{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:9px 5px;cursor:pointer;text-align:center;transition:all 0.18s;color:var(--text);font-family:inherit;}
-  .lang-btn .flag{font-size:20px;display:block;margin-bottom:3px;}
-  .lang-btn .ln{font-size:9px;color:var(--muted);font-weight:500;}
-  .lang-btn:hover{border-color:var(--accent);}
-  .lang-btn.selected{border-color:var(--accent);background:rgba(108,99,255,0.15);}
-  .lang-btn.selected .ln{color:var(--accent2);}
-
-  .mode-row{display:flex;gap:7px;flex-wrap:wrap;}
-  .mode-btn{flex:1;min-width:90px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 6px;cursor:pointer;text-align:center;transition:all 0.18s;color:var(--text);font-family:inherit;font-size:11px;font-weight:500;}
-  .mode-btn .mi{font-size:15px;display:block;margin-bottom:2px;}
-  .mode-btn:hover{border-color:var(--accent);}
-  .mode-btn.selected{border-color:var(--accent);background:rgba(108,99,255,0.12);color:var(--accent2);}
-
-  .level-row{display:flex;gap:7px;}
-  .level-btn{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 6px;cursor:pointer;text-align:center;transition:all 0.18s;color:var(--muted);font-family:inherit;font-size:11px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;}
-  .level-btn:hover{border-color:var(--accent);}
-  .level-btn.selected.beg{border-color:var(--green);background:rgba(34,211,160,0.1);color:var(--green);}
-  .level-btn.selected.med{border-color:#f59e0b;background:rgba(245,158,11,0.1);color:#f59e0b;}
-  .level-btn.selected.adv{border-color:var(--red);background:rgba(255,92,114,0.1);color:var(--red);}
-
-  .native-row{display:flex;gap:7px;flex-wrap:wrap;}
-  .native-btn{flex:1;min-width:78px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 6px;cursor:pointer;text-align:center;transition:all 0.18s;color:var(--muted);font-family:inherit;font-size:11px;font-weight:500;}
-  .native-btn:hover{border-color:var(--accent);}
-  .native-btn.selected{border-color:var(--accent2);background:rgba(167,139,250,0.12);color:var(--accent2);}
-
-  .tutor-area{width:100%;max-width:480px;padding:20px 24px 10px;display:flex;flex-direction:column;align-items:center;}
-  .avatar-ring{position:relative;width:130px;height:130px;margin-bottom:14px;}
-  .avatar-ring canvas{position:absolute;top:0;left:0;width:100%;height:100%;border-radius:50%;}
-  .avatar-inner{position:absolute;top:10px;left:10px;width:110px;height:110px;border-radius:50%;background:linear-gradient(145deg,var(--accent),#4a3fcf);display:flex;align-items:center;justify-content:center;font-size:42px;box-shadow:0 0 30px rgba(108,99,255,0.3);transition:box-shadow 0.3s;}
-  .avatar-inner.speaking{box-shadow:0 0 55px rgba(108,99,255,0.6),0 0 20px rgba(167,139,250,0.4);animation:breathe 1.4s ease-in-out infinite;}
-  .avatar-inner.mic-on{box-shadow:0 0 40px rgba(34,211,160,0.5);}
-  @keyframes breathe{0%,100%{transform:scale(1);}50%{transform:scale(1.045);}}
-  .tutor-name{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:600;letter-spacing:-0.5px;margin-bottom:3px;}
-  .tutor-sub{font-size:11px;color:var(--muted);}
-
-  .stats-row{width:100%;max-width:480px;padding:0 24px 0;display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px;}
-  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 12px;text-align:center;}
-  .stat-val{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;color:var(--accent2);}
-  .stat-name{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;}
-
-  #waveCanvas{width:calc(100% - 48px);max-width:432px;height:44px;border-radius:10px;background:var(--surface);border:1px solid var(--border);display:block;margin:12px 24px 0;}
-
-  .chat-box{width:100%;max-width:480px;padding:10px 24px 0;}
-  .bubble-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:5px;font-weight:600;}
-  .bubble{background:var(--surface2);border:1px solid var(--border);border-radius:14px 14px 14px 4px;padding:12px 14px;font-size:13px;line-height:1.6;color:var(--text);min-height:48px;}
-  .bubble.user-bubble{background:rgba(108,99,255,0.1);border-color:rgba(108,99,255,0.25);border-radius:14px 14px 4px 14px;color:var(--accent2);margin-top:8px;}
-  .typing-dots{display:inline-flex;gap:4px;align-items:center;}
-  .dot{width:6px;height:6px;border-radius:50%;background:var(--accent2);animation:bounce 1.2s ease-in-out infinite;}
-  .dot:nth-child(2){animation-delay:0.2s;}.dot:nth-child(3){animation-delay:0.4s;}
-  @keyframes bounce{0%,100%{transform:translateY(0);opacity:0.4;}50%{transform:translateY(-4px);opacity:1;}}
-
-  /* Correction card */
-  .correction-card{display:none;margin-top:8px;background:rgba(34,211,160,0.06);border:1px solid rgba(34,211,160,0.3);border-radius:12px;padding:10px 13px;}
-  .correction-card.show{display:block;}
-  .correction-card.has-fix{background:rgba(245,158,11,0.07);border-color:rgba(245,158,11,0.35);}
-  .corr-label{font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:5px;}
-  .corr-label.ok{color:var(--green);}
-  .corr-label.fix{color:#f59e0b;}
-  .corr-line{font-size:12.5px;line-height:1.55;}
-  .corr-line.strike{color:var(--muted);text-decoration:line-through;}
-  .corr-line.good{color:var(--green);font-weight:500;}
-  .corr-note{font-size:11.5px;color:var(--muted);margin-top:4px;}
-
-  .native-line{font-size:11.5px;color:var(--accent2);margin-top:6px;font-style:italic;display:none;}
-  .native-line.show{display:block;}
-
-  .trans-bar{width:100%;max-width:480px;padding:8px 24px 0;}
-  .trans-box{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:9px 13px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px;min-height:36px;}
-  .trans-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--accent);white-space:nowrap;}
-
-  .call-area{width:100%;max-width:480px;padding:16px 24px 0;display:flex;flex-direction:column;align-items:center;gap:12px;}
-  .call-timer{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:600;letter-spacing:2px;color:var(--green);text-align:center;}
-  .call-controls{display:flex;align-items:center;gap:18px;}
-  .call-btn{border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.22s;}
-  .call-btn.dial{width:76px;height:76px;font-size:30px;background:linear-gradient(145deg,var(--green),#16a07a);box-shadow:0 4px 20px rgba(34,211,160,0.4);}
-  .call-btn.dial:hover{transform:scale(1.08);box-shadow:0 6px 30px rgba(34,211,160,0.6);}
-  .call-btn.hangup{width:76px;height:76px;font-size:30px;background:linear-gradient(145deg,var(--red),#c0392b);box-shadow:0 4px 20px rgba(255,92,114,0.4);}
-  .call-btn.hangup:hover{transform:scale(1.08);}
-  .call-btn.side{width:50px;height:50px;font-size:19px;background:var(--surface2);border:1px solid var(--border);color:var(--text);}
-  .call-btn.side.muted{background:rgba(255,92,114,0.15);border-color:var(--red);}
-  .call-label{font-size:12px;color:var(--muted);text-align:center;}
-  .hidden{display:none!important;}
-
-  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px 16px;border-radius:10px;font-size:12px;z-index:100;display:none;max-width:340px;text-align:center;}
-  .toast.err{border-color:var(--red);color:var(--red);}
-  .toast.ok{border-color:var(--green);color:var(--green);}
-
-  .retry-row{display:none;gap:8px;margin-top:10px;}
-  .retry-row.show{display:flex;}
-  .retry-btn{flex:1;background:var(--surface2);border:1px solid var(--accent);color:var(--accent2);font-family:inherit;font-size:12px;font-weight:500;padding:9px;border-radius:9px;cursor:pointer;}
-  .retry-btn:hover{background:rgba(108,99,255,0.15);}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+:root{
+  --bg:#0a0a0f;--surface:#13131a;--surface2:#1c1c28;--border:#2a2a3a;
+  --accent:#6c63ff;--accent2:#a78bfa;--green:#22d3a0;--red:#ff5c72;--amber:#fbbf24;
+  --text:#f0f0f8;--muted:#8a8aaa;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;}
+body{min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 12px 24px;max-width:520px;margin:0 auto;}
+header{width:100%;display:flex;justify-content:space-between;align-items:center;padding:14px 0 10px;}
+.logo{font-weight:700;font-size:18px;letter-spacing:-0.3px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.profile-tag{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);padding:6px 10px;border-radius:14px;font-size:11px;color:var(--muted);cursor:pointer;}
+.profile-tag.hidden{display:none;}
+.profile-tag b{color:var(--text);font-weight:600;font-size:12px;}
+.status-pill{font-size:10px;color:var(--muted);background:var(--surface);padding:4px 9px;border-radius:10px;border:1px solid var(--border);}
+.status-pill.listening{color:var(--green);border-color:rgba(34,211,160,.3);}
+.status-pill.active{color:var(--accent2);border-color:rgba(167,139,250,.3);}
+.section{width:100%;margin-top:10px;}
+.sec-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;padding-left:2px;}
+.btn-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
+.btn-grid.three{grid-template-columns:repeat(3,1fr);}
+.btn-grid.four{grid-template-columns:repeat(4,1fr);}
+.btn-grid.five{grid-template-columns:repeat(5,1fr);}
+.btn{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:9px 8px;border-radius:9px;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:5px;font-family:inherit;flex-direction:column;text-align:center;}
+.btn:hover{background:var(--surface2);}
+.btn.selected{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;color:white;font-weight:600;}
+.btn small{display:block;font-size:9px;opacity:.85;font-weight:400;margin-top:1px;}
+.tutor-area{display:flex;flex-direction:column;align-items:center;margin:14px 0 8px;}
+.avatar-ring{position:relative;width:90px;height:90px;display:flex;align-items:center;justify-content:center;}
+.avatar-ring canvas{position:absolute;inset:0;}
+.avatar-inner{width:64px;height:64px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;transition:transform .25s;}
+.avatar-inner.speaking{animation:pulse 1s ease-in-out infinite;}
+.avatar-inner.mic-on{box-shadow:0 0 0 4px rgba(34,211,160,.4);}
+@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
+.tutor-name{font-weight:600;font-size:14px;margin-top:6px;}
+.tutor-sub{font-size:10px;color:var(--muted);}
+.stats-row{display:flex;gap:5px;width:100%;margin:6px 0;}
+.stat-card{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 4px;text-align:center;}
+.stat-val{font-size:13px;font-weight:600;color:var(--accent2);}
+.stat-name{font-size:9px;color:var(--muted);text-transform:uppercase;}
+#waveCanvas{width:100%;height:32px;margin:4px 0;}
+.chat-box{width:100%;margin-top:4px;}
+.bubble-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;}
+.bubble{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.5;}
+.bubble.user-bubble{background:linear-gradient(135deg,rgba(108,99,255,.15),rgba(167,139,250,.1));border-color:rgba(108,99,255,.25);}
+.native-line{margin-top:5px;padding-top:5px;border-top:1px dashed var(--border);font-size:12px;color:var(--accent2);font-style:italic;}
+.native-line:empty{display:none;}
+.hidden{display:none!important;}
+.correction-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 11px;margin-top:8px;display:none;}
+.correction-card.show{display:block;}
+.corr-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.corr-label.ok{color:var(--green);}
+.corr-label.fix{color:var(--amber);}
+.corr-line{font-size:12px;color:var(--muted);margin:2px 0;}
+.corr-line.good{color:var(--green);font-weight:500;}
+.corr-note{font-size:11px;color:var(--text);margin-top:4px;opacity:.85;}
+.trans-bar{width:100%;margin-top:8px;}
+.trans-box{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:11px;color:var(--muted);display:flex;gap:6px;align-items:center;}
+.trans-label{background:var(--accent);color:white;padding:1px 6px;border-radius:5px;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+.call-area{width:100%;margin-top:14px;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.call-timer{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;}
+.call-controls{display:flex;gap:14px;align-items:center;}
+.call-btn{width:54px;height:54px;border-radius:50%;border:none;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s,background .15s;font-family:inherit;}
+.call-btn.dial{width:66px;height:66px;background:linear-gradient(135deg,var(--green),#1ab38a);color:white;box-shadow:0 6px 20px rgba(34,211,160,.35);font-size:26px;}
+.call-btn.dial.end{background:linear-gradient(135deg,var(--red),#e0445a);box-shadow:0 6px 20px rgba(255,92,114,.35);}
+.call-btn.side{background:var(--surface2);border:1px solid var(--border);color:var(--text);}
+.call-btn.side.muted{background:var(--amber);color:#222;}
+.call-btn:active{transform:scale(.94);}
+.call-label{font-size:10px;color:var(--muted);}
+.retry-row{justify-content:center;margin-top:8px;display:none;}
+.retry-row.show{display:flex;}
+.retry-btn{background:var(--surface2);border:1px solid var(--accent);color:var(--accent2);padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(40px);background:var(--surface2);border:1px solid var(--border);padding:9px 16px;border-radius:10px;font-size:12px;opacity:0;pointer-events:none;transition:all .3s;z-index:100;max-width:90%;text-align:center;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto;}
+.toast.err{border-color:var(--red);color:var(--red);}
+.toast.ok{border-color:var(--green);color:var(--green);}
+.modal-overlay{position:fixed;inset:0;background:rgba(5,5,10,.85);backdrop-filter:blur(6px);display:none;align-items:flex-start;justify-content:center;z-index:200;padding:20px 12px;overflow-y:auto;}
+.modal-overlay.show{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;width:100%;max-width:440px;margin:auto;}
+.modal h2{font-size:18px;font-weight:600;margin-bottom:4px;}
+.modal .sub{font-size:12px;color:var(--muted);margin-bottom:14px;}
+.modal label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:10px 0 4px;}
+.modal input,.modal select{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:9px;font-size:14px;font-family:inherit;}
+.modal input:focus,.modal select:focus{outline:none;border-color:var(--accent);}
+.modal-actions{display:flex;gap:8px;margin-top:16px;}
+.modal-actions .btn{flex:1;padding:11px;font-size:13px;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2))!important;border:none!important;color:white!important;font-weight:600!important;}
+.profile-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;}
+.profile-card .info{flex:1;cursor:pointer;}
+.profile-card .name{font-weight:600;font-size:14px;}
+.profile-card .meta{font-size:10px;color:var(--muted);margin-top:2px;}
+.profile-card .del{background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;padding:4px 8px;}
+.welcome-big{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
+.welcome-big .btn{padding:14px;font-size:14px;font-weight:600;}
+.mcq-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-top:8px;}
+.mcq-card.hidden{display:none;}
+.mcq-q{font-size:14px;font-weight:600;margin-bottom:10px;line-height:1.4;}
+.mcq-choices{display:flex;flex-direction:column;gap:6px;}
+.mcq-choice{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:9px;font-size:13px;cursor:pointer;text-align:left;font-family:inherit;line-height:1.4;}
+.mcq-choice:hover:not(:disabled){border-color:var(--accent);}
+.mcq-choice:disabled{cursor:default;}
+.mcq-choice.correct{background:rgba(34,211,160,.15);border-color:var(--green);color:var(--green);font-weight:600;}
+.mcq-choice.wrong{background:rgba(255,92,114,.15);border-color:var(--red);color:var(--red);}
+.mcq-feedback{font-size:12px;margin-top:10px;padding:9px;border-radius:8px;background:var(--surface2);display:none;}
+.mcq-feedback.show{display:block;}
+.mcq-feedback.ok{color:var(--green);border:1px solid rgba(34,211,160,.3);}
+.mcq-feedback.bad{color:var(--red);border:1px solid rgba(255,92,114,.3);}
+.mcq-score{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:8px;}
+.mcq-next{margin-top:10px;display:flex;gap:8px;}
+.mcq-next.hidden{display:none;}
+.typing-dots{display:inline-flex;gap:3px;}
+.typing-dots .dot{width:5px;height:5px;border-radius:50%;background:var(--accent2);animation:bounce 1.2s infinite ease-in-out;}
+.typing-dots .dot:nth-child(2){animation-delay:.15s;}
+.typing-dots .dot:nth-child(3){animation-delay:.3s;}
+@keyframes bounce{0%,80%,100%{transform:scale(.6);opacity:.5;}40%{transform:scale(1);opacity:1;}}
 </style>
 </head>
 <body>
 
 <header>
   <div class="logo">LinguaCall</div>
-  <div class="status-pill" id="statusPill">Ready</div>
+  <div style="display:flex;gap:6px;align-items:center;">
+    <div class="profile-tag hidden" id="profileTag" onclick="openProfileMenu()"><span>👤</span><b id="profileTagName">—</b></div>
+    <div class="status-pill" id="statusPill">Ready</div>
+  </div>
 </header>
 
-<div class="section">
-  <div class="sec-label">Learning</div>
-  <div class="lang-grid">
-    <button class="lang-btn selected" data-lang="English" data-code="en-US" onclick="selectLang(this)"><span class="flag">🇺🇸</span><span class="ln">English</span></button>
-    <button class="lang-btn" data-lang="Spanish" data-code="es-ES" onclick="selectLang(this)"><span class="flag">🇪🇸</span><span class="ln">Spanish</span></button>
-    <button class="lang-btn" data-lang="French" data-code="fr-FR" onclick="selectLang(this)"><span class="flag">🇫🇷</span><span class="ln">French</span></button>
-    <button class="lang-btn" data-lang="Japanese" data-code="ja-JP" onclick="selectLang(this)"><span class="flag">🇯🇵</span><span class="ln">Japanese</span></button>
-    <button class="lang-btn" data-lang="Arabic" data-code="ar-SA" onclick="selectLang(this)"><span class="flag">🇸🇦</span><span class="ln">Arabic</span></button>
-    <button class="lang-btn" data-lang="German" data-code="de-DE" onclick="selectLang(this)"><span class="flag">🇩🇪</span><span class="ln">German</span></button>
-    <button class="lang-btn" data-lang="Chinese" data-code="zh-CN" onclick="selectLang(this)"><span class="flag">🇨🇳</span><span class="ln">Chinese</span></button>
-    <button class="lang-btn" data-lang="Portuguese" data-code="pt-BR" onclick="selectLang(this)"><span class="flag">🇧🇷</span><span class="ln">Portug.</span></button>
+<div id="setupArea" style="width:100%;">
+  <div class="section">
+    <div class="sec-label">Topic</div>
+    <div class="btn-grid three" id="topicGrid"></div>
   </div>
-</div>
-
-<div class="section">
-  <div class="sec-label">Your native language (for translations &amp; help)</div>
-  <div class="native-row">
-    <button class="native-btn selected" data-native="none" onclick="selectNative(this)">None</button>
-    <button class="native-btn" data-native="Urdu" onclick="selectNative(this)">اردو Urdu</button>
-    <button class="native-btn" data-native="Pashto" onclick="selectNative(this)">پښتو Pashto</button>
-    <button class="native-btn" data-native="Persian" onclick="selectNative(this)">فارسی Persian</button>
-    <button class="native-btn" data-native="Spanish" onclick="selectNative(this)">Español</button>
+  <div class="section">
+    <div class="sec-label">Sub-topic</div>
+    <div class="btn-grid two" id="subtopicGrid"></div>
   </div>
-</div>
-
-<div class="section">
-  <div class="sec-label">Level</div>
-  <div class="level-row">
-    <button class="level-btn beg selected" data-level="beginner" onclick="selectLevel(this)">🌱 Beginner</button>
-    <button class="level-btn med" data-level="intermediate" onclick="selectLevel(this)">🔥 Medium</button>
-    <button class="level-btn adv" data-level="advanced" onclick="selectLevel(this)">⚡ Advanced</button>
+  <div class="section">
+    <div class="sec-label">Level</div>
+    <div class="btn-grid three">
+      <button class="btn selected" data-level="beginner" onclick="selectLevel(this)">🌱 Beginner</button>
+      <button class="btn" data-level="intermediate" onclick="selectLevel(this)">🔥 Medium</button>
+      <button class="btn" data-level="advanced" onclick="selectLevel(this)">⚡ Advanced</button>
+    </div>
   </div>
-</div>
-
-<div class="section">
-  <div class="sec-label">Mode</div>
-  <div class="mode-row">
-    <button class="mode-btn selected" data-mode="companion" onclick="selectMode(this)"><span class="mi">💬</span>Free Talk</button>
-    <button class="mode-btn" data-mode="lesson" onclick="selectMode(this)"><span class="mi">📚</span>Lesson</button>
-    <button class="mode-btn" data-mode="interview" onclick="selectMode(this)"><span class="mi">🎙️</span>Interview</button>
-    <button class="mode-btn" data-mode="story" onclick="selectMode(this)"><span class="mi">📖</span>Story</button>
+  <div class="section">
+    <div class="sec-label">Nova's Voice</div>
+    <div class="btn-grid four">
+      <button class="btn" data-voice="kid-boy" onclick="selectVoice(this)">👦<small>Boy</small></button>
+      <button class="btn" data-voice="kid-girl" onclick="selectVoice(this)">👧<small>Girl</small></button>
+      <button class="btn" data-voice="man" onclick="selectVoice(this)">👨<small>Man</small></button>
+      <button class="btn selected" data-voice="woman" onclick="selectVoice(this)">👩<small>Woman</small></button>
+    </div>
+  </div>
+  <div class="section">
+    <div class="sec-label">Your native language (for translation)</div>
+    <div class="btn-grid five">
+      <button class="btn selected" data-native="none" onclick="selectNative(this)">None</button>
+      <button class="btn" data-native="Urdu" onclick="selectNative(this)">اردو</button>
+      <button class="btn" data-native="Pashto" onclick="selectNative(this)">پښتو</button>
+      <button class="btn" data-native="Persian" onclick="selectNative(this)">فارسی</button>
+      <button class="btn" data-native="Spanish" onclick="selectNative(this)">Esp.</button>
+    </div>
   </div>
 </div>
 
 <div class="tutor-area">
   <div class="avatar-ring">
-    <canvas id="ringCanvas" width="130" height="130"></canvas>
+    <canvas id="ringCanvas" width="90" height="90"></canvas>
     <div class="avatar-inner" id="avatarInner">🤖</div>
   </div>
   <div class="tutor-name">Nova</div>
@@ -194,709 +196,918 @@
 <div class="chat-box">
   <div class="bubble-label">Nova</div>
   <div class="bubble" id="tutorBubble">
-    <span id="tutorText">Pick your language and level, then tap <strong>Call</strong>.</span>
+    <span id="tutorText">Welcome! Pick a topic and tap <strong>Call</strong>.</span>
     <div class="native-line" id="nativeLine"></div>
   </div>
-
-  <div class="bubble-label hidden" id="userLabel" style="margin-top:9px;">You</div>
+  <div class="bubble-label hidden" id="userLabel" style="margin-top:8px;">You</div>
   <div class="bubble user-bubble hidden" id="userBubble"><span id="userText"></span></div>
-
   <div class="correction-card" id="correctionCard">
     <div class="corr-label ok" id="corrLabel">Nice!</div>
     <div class="corr-line" id="corrOriginal"></div>
     <div class="corr-line good hidden" id="corrFixed"></div>
     <div class="corr-note" id="corrNote"></div>
   </div>
-
+  <div class="mcq-card hidden" id="mcqCard">
+    <div class="mcq-score">
+      <span>Question <b id="mcqQNum">1</b> of <b id="mcqQTotal">10</b></span>
+      <span>Score: <b id="mcqScore">0</b></span>
+    </div>
+    <div class="mcq-q" id="mcqQuestion"></div>
+    <div class="mcq-choices" id="mcqChoices"></div>
+    <div class="mcq-feedback" id="mcqFeedback"></div>
+    <div class="mcq-next hidden" id="mcqNextRow">
+      <button class="btn btn-primary" onclick="nextMCQ()">Next Question →</button>
+    </div>
+  </div>
   <div class="retry-row" id="retryRow">
-    <button class="retry-btn" onclick="retryLastTurn()">↻ Try again — Nova didn't respond</button>
+    <button class="retry-btn" onclick="retryLastTurn()">↻ Try again</button>
   </div>
 </div>
 
 <div class="trans-bar">
-  <div class="trans-box"><span class="trans-label">Tip</span><span id="transText">Speak clearly after Nova finishes talking.</span></div>
+  <div class="trans-box"><span class="trans-label">Tip</span><span id="transText">Tap Call. Nova will wait until you finish speaking.</span></div>
 </div>
 
 <div class="call-area">
-  <div id="timerArea" class="hidden">
-    <div class="call-timer" id="callTimer">0:00</div>
-  </div>
+  <div id="timerArea" class="hidden"><div class="call-timer" id="callTimer">0:00</div></div>
   <div class="call-controls">
     <button class="call-btn side hidden" id="muteBtn" onclick="toggleMute()">🎤</button>
     <button class="call-btn dial" id="callBtn" onclick="toggleCall()">📞</button>
     <button class="call-btn side hidden" id="skipBtn" onclick="skipTurn()">⏭</button>
   </div>
-  <div class="call-label" id="callLabel">Tap to start your session</div>
+  <div class="call-label" id="callLabel">Tap to start</div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script>
-// ── State ─────────────────────────────────────────────────────────────────────
-let inCall = false;
-let muted = false;
-let selectedLang = 'English';
-let selectedCode = 'en-US';
-let selectedMode = 'companion';
-let selectedLevel = 'beginner';
-let selectedNative = 'none';
-let callSeconds = 0, timerInterval = null;
-let wordCount = 0, turnCount = 0;
-let conversationHistory = [];
-let animFrame = null, wavePhase = 0, ringFrame = null;
-let isSpeaking = false, isListening = false, isThinking = false;
-let recognition = null;
-let lastFailedInput = null; // for retry
-let watchdogTimer = null;   // prevents permanent stuck state
-const synth = window.speechSynthesis;
+<div class="modal-overlay" id="welcomeModal">
+  <div class="modal"><div id="modalContent"></div></div>
+</div>
 
-// ── Backend URL ───────────────────────────────────────────────────────────────
+<script>
 const BACKEND_URL = "https://weathered-salad-5b40.zapic78.workers.dev";
 
-// ── Level configs ─────────────────────────────────────────────────────────────
-const LEVEL_CONFIG = {
-  beginner: {
-    label: 'Beginner',
-    desc: 'Simple sentences, slow pace, lots of encouragement',
-    rate: 0.72,
-    instructions: `Use ONLY the most common 300-500 English words. Maximum 6 words per sentence. Speak very slowly in tone. Use present tense mostly. Repeat key words. Ask one very simple question per turn (yes/no or one-word-answer questions are great). Be extremely encouraging.`
+const TOPICS = {
+  basic: {
+    label: '🌱 Basic',
+    desc: 'Everyday simple sentences',
+    subtopics: {
+      daily_routine: { name: 'Daily Routine', samples: ["I wake up at 7.","I brush my teeth.","I eat breakfast.","I go to work.","I come home at 5.","I sleep at 10."] },
+      family: { name: 'Family', samples: ["I have one brother.","My mother is kind.","My father is a driver.","I love my family.","My sister is small."] },
+      food: { name: 'Food', samples: ["I eat rice.","I like chicken.","I drink water.","I am hungry.","The food is good."] },
+      home: { name: 'Home', samples: ["My house has three rooms.","The kitchen is small.","I sleep in my bedroom.","The TV is in the living room."] },
+      greetings: { name: 'Greetings', samples: ["Hello.","Good morning.","How are you?","I am fine, thank you.","Nice to meet you.","Goodbye."] },
+      weather: { name: 'Weather', samples: ["It is sunny today.","It is raining.","The weather is cold.","Today is hot."] },
+      shopping: { name: 'Shopping', samples: ["How much is this?","It is too expensive.","I want to buy milk.","Where is the store?"] },
+      work: { name: 'Work', samples: ["I am a driver.","I work in a store.","I start work at 9.","I like my job."] },
+      health: { name: 'Health', samples: ["I have a headache.","My stomach hurts.","I am tired.","I need a doctor."] },
+      directions: { name: 'Directions', samples: ["Where is the bus stop?","Turn left.","Go straight.","It is near the school."] }
+    }
   },
-  intermediate: {
-    label: 'Intermediate',
-    desc: 'Natural pace, some correction, varied topics',
-    rate: 0.88,
-    instructions: `Use natural conversational language. Mix simple and intermediate vocabulary. Introduce occasional idioms and explain them briefly. Ask engaging follow-up questions. Keep a friendly, natural tone.`
+  grammar: {
+    label: '📚 Grammar',
+    desc: 'Step-by-step grammar drills',
+    subtopics: {
+      present: { name: 'Present Tense', samples: ["I eat. You eat. He eats.","She works every day.","They play football."] },
+      past: { name: 'Past Tense', samples: ["I went to the store yesterday.","She ate breakfast.","They played all day."] },
+      questions: { name: 'Asking Questions', samples: ["What is your name?","Where do you live?","How old are you?","Why are you sad?"] },
+      plurals: { name: 'Singular & Plural', samples: ["one cat / two cats","one box / three boxes","one child / many children"] },
+      pronouns: { name: 'Pronouns', samples: ["I / me / my","You / your","He / him / his","She / her","We / us / our","They / them / their"] },
+      articles: { name: 'A / An / The', samples: ["A book.","An apple.","The sun is hot."] }
+    }
   },
-  advanced: {
-    label: 'Advanced',
-    desc: 'Full speed, complex topics, nuanced feedback',
-    rate: 0.95,
-    instructions: `Use rich, natural language with idioms, complex grammar, and varied vocabulary. Discuss abstract topics, opinions, culture. Challenge the learner with thought-provoking questions. Treat them as a near-fluent speaker.`
+  story: {
+    label: '📖 Story',
+    desc: 'Build a story together',
+    subtopics: {
+      cat_box: { name: 'The Cat & Box', samples: ["There was a small cat.","The cat found a big box.","What is inside the box?"] },
+      lost_dog: { name: 'The Lost Dog', samples: ["A boy lost his dog.","The dog ran into the forest."] },
+      magic_door: { name: 'The Magic Door', samples: ["I found a door in my garden.","It glowed with blue light."] }
+    }
+  },
+  qa: {
+    label: '❓ Q&A',
+    desc: 'Practice asking & answering',
+    subtopics: {
+      personal: { name: 'About You', samples: ["What is your name?","How old are you?","Where are you from?"] },
+      preferences: { name: 'Likes & Dislikes', samples: ["What is your favorite color?","Do you like coffee?"] },
+      opinions: { name: 'Opinions', samples: ["What do you think about this?","Do you agree?"] }
+    }
+  },
+  citizenship: {
+    label: '🇺🇸 Citizen',
+    desc: 'US naturalization test prep',
+    subtopics: {
+      cit_practice: { name: 'Practice w/ Nova', samples: ["What is the supreme law of the land?","How many U.S. Senators are there?"] },
+      cit_mcq: { name: '100 Q Test', mcq: true },
+      cit_listen: { name: 'Listen & Repeat', samples: ["I want to become a U.S. citizen.","I have lived here for five years."] }
+    }
   }
 };
 
-const NATIVE_NAMES = { none: null, Urdu: 'Urdu', Pashto: 'Pashto', Persian: 'Persian (Farsi/Dari)', Spanish: 'Spanish' };
+const CIT_QUESTIONS = [
+  { q: "What is the supreme law of the land?", a: "The Constitution", w: ["The Declaration of Independence","The Bill of Rights","The President"] },
+  { q: "What does the Constitution do?", a: "Sets up the government and protects basic rights", w: ["Declares war","Names the President","Lists all 50 states"] },
+  { q: "The first three words of the Constitution are…", a: "We the People", w: ["In God We Trust","Life and Liberty","One Nation Indivisible"] },
+  { q: "What is an amendment?", a: "A change to the Constitution", w: ["A new law passed by Congress","A presidential order","A court ruling"] },
+  { q: "What do we call the first ten amendments?", a: "The Bill of Rights", w: ["The Articles","The Preamble","The Federalist Papers"] },
+  { q: "What is one right from the First Amendment?", a: "Freedom of speech", w: ["The right to vote","The right to bear arms","The right to a fair trial"] },
+  { q: "How many amendments does the Constitution have?", a: "Twenty-seven (27)", w: ["Ten (10)","Twenty (20)","Fifty (50)"] },
+  { q: "What did the Declaration of Independence do?", a: "Announced our independence from Great Britain", w: ["Created the Constitution","Ended slavery","Started the Civil War"] },
+  { q: "Name one right in the Declaration of Independence.", a: "Life", w: ["The right to drive","The right to own land","The right to free education"] },
+  { q: "What is the economic system of the United States?", a: "Capitalist / market economy", w: ["Socialist economy","Communist economy","Bartering only"] },
+  { q: "What is the 'rule of law'?", a: "Everyone must follow the law", w: ["The President makes all laws","Only judges follow the law","The military runs the government"] },
+  { q: "Name one branch of government.", a: "Legislative (Congress)", w: ["Military","Police","School board"] },
+  { q: "What stops one branch from becoming too powerful?", a: "Checks and balances", w: ["The army","The Bill of Rights","Public voting"] },
+  { q: "Who is in charge of the executive branch?", a: "The President", w: ["The Chief Justice","The Speaker of the House","The Senate Majority Leader"] },
+  { q: "Who makes federal laws?", a: "Congress", w: ["The President alone","The Supreme Court","State governors"] },
+  { q: "What are the two parts of Congress?", a: "The Senate and the House of Representatives", w: ["The Senate and the Cabinet","The House and the Supreme Court","The President and Vice President"] },
+  { q: "How many U.S. Senators are there?", a: "One hundred (100)", w: ["Fifty (50)","Four hundred thirty-five (435)","Two hundred (200)"] },
+  { q: "We elect a U.S. Senator for how many years?", a: "Six (6) years", w: ["Two (2) years","Four (4) years","Eight (8) years"] },
+  { q: "The House of Representatives has how many voting members?", a: "Four hundred thirty-five (435)", w: ["One hundred (100)","Fifty (50)","Three hundred (300)"] },
+  { q: "We elect a U.S. Representative for how many years?", a: "Two (2) years", w: ["Four (4) years","Six (6) years","One (1) year"] },
+  { q: "We elect a President for how many years?", a: "Four (4) years", w: ["Two (2) years","Six (6) years","Eight (8) years"] },
+  { q: "In what month do we vote for President?", a: "November", w: ["January","July","May"] },
+  { q: "If the President can no longer serve, who becomes President?", a: "The Vice President", w: ["The Speaker of the House","The Chief Justice","The Secretary of State"] },
+  { q: "Who is the Commander in Chief of the military?", a: "The President", w: ["The Secretary of Defense","The Vice President","A 5-star General"] },
+  { q: "Who signs bills to become laws?", a: "The President", w: ["The Speaker of the House","The Chief Justice","The Vice President"] },
+  { q: "What does the judicial branch do?", a: "Reviews laws and decides if they follow the Constitution", w: ["Makes laws","Enforces laws","Collects taxes"] },
+  { q: "What is the highest court in the United States?", a: "The Supreme Court", w: ["The Federal Court","The District Court","The State Court"] },
+  { q: "How many justices are on the Supreme Court?", a: "Nine (9)", w: ["Seven (7)","Twelve (12)","Fifteen (15)"] },
+  { q: "What are the two major political parties?", a: "Democratic and Republican", w: ["Liberal and Conservative","Federalist and Whig","Green and Libertarian"] },
+  { q: "What is the capital of the United States?", a: "Washington, D.C.", w: ["New York City","Philadelphia","Los Angeles"] }
+];
 
-// ── System Prompt ─────────────────────────────────────────────────────────────
-// IMPORTANT FIX: the model is now forced to return strict JSON with separate
-// fields for { reply, native_translation, correction }. This is what makes
-// the correction feature and translation feature actually work, and it also
-// makes failures detectable (so the app can recover instead of freezing).
-function buildSystem() {
-  const lc = LEVEL_CONFIG[selectedLevel];
-  const modeExtra = {
-    companion: `Have a warm, flowing conversation. Ask about their life, interests, feelings. Keep it natural and fun.`,
-    lesson:    `Teach vocabulary, grammar, and useful daily-life phrases (greetings, shopping, directions, family, food, work). Structure each turn: teach one short phrase → give an example → ask the student to try it.`,
-    interview: `Conduct a friendly mock job interview. Ask one interview question per turn. Give brief positive feedback on their answer before the next question.`,
-    story:     `Tell an interactive story together. Narrate 2-3 sentences then ask the student to make a choice or add to the story.`
-  };
-  const nativeName = NATIVE_NAMES[selectedNative];
-  const nativeInstruction = nativeName
+const VOICE_PROFILES = {
+  'kid-boy':  { label: '👦 Boy',   pitch: 1.7,  rateMod: 1.0, prefersMale: true,  prefersFemale: false },
+  'kid-girl': { label: '👧 Girl',  pitch: 1.85, rateMod: 1.0, prefersMale: false, prefersFemale: true  },
+  'man':      { label: '👨 Man',   pitch: 0.82, rateMod: 1.0, prefersMale: true,  prefersFemale: false },
+  'woman':    { label: '👩 Woman', pitch: 1.1,  rateMod: 1.0, prefersMale: false, prefersFemale: true  }
+};
+
+const LEVEL_CONFIG = {
+  beginner:     { label:'Beginner', rate:0.7,  instructions:`Use ONLY the most common 300 English words. MAX 5-6 words per sentence. Use present tense almost always. Use VERY SIMPLE patterns like "I eat.", "I go to work.", "I am happy.". Always speak slowly. Always repeat important words. Ask ONE very simple question per turn (yes/no or one-word answer is best). Be extremely patient and encouraging.` },
+  intermediate: { label:'Medium',   rate:0.88, instructions:`Use natural conversational English. Mix simple and intermediate vocabulary. 1-2 sentences per turn. Ask follow-up questions.` },
+  advanced:     { label:'Advanced', rate:1.0,  instructions:`Use rich natural English with idioms and varied vocabulary. Challenge with thought-provoking questions.` }
+};
+
+const NATIVE_NAMES = { none:null, Urdu:'Urdu', Pashto:'Pashto', Persian:'Persian (Farsi/Dari)', Spanish:'Spanish' };
+
+// State
+let currentUser=null, selectedTopic='basic', selectedSubtopic='daily_routine';
+let selectedLevel='beginner', selectedVoice='woman', selectedNative='none';
+let selectedLang='English', selectedCode='en-US';
+let inCall=false, muted=false;
+let callSeconds=0, timerInterval=null, wordCount=0, turnCount=0;
+let conversationHistory=[];
+let isSpeaking=false, isListening=false, isThinking=false;
+let recognition=null, lastFailedInput=null;
+let watchdogTimer=null, silenceTimer=null, endpointTimer=null;
+let lastTranscriptInterim='', lastTranscriptFinal='';
+const synth=window.speechSynthesis;
+let mcqMode=false, mcqQueue=[], mcqIdx=0, mcqScoreVal=0, mcqAnswered=false;
+let animFrame=null, wavePhase=0;
+
+// ============= Profile / localStorage =============
+function loadProfiles(){ try{return JSON.parse(localStorage.getItem('linguacall_profiles')||'{"users":[],"lastUserId":null}');}catch(e){return{users:[],lastUserId:null};} }
+function saveProfiles(d){ try{localStorage.setItem('linguacall_profiles',JSON.stringify(d));}catch(e){} }
+function getProfileById(id){ return loadProfiles().users.find(u=>u.id===id); }
+function upsertProfile(p){ const d=loadProfiles(); const i=d.users.findIndex(u=>u.id===p.id); if(i>=0)d.users[i]=p; else d.users.push(p); d.lastUserId=p.id; saveProfiles(d); }
+function deleteProfile(id){ const d=loadProfiles(); d.users=d.users.filter(u=>u.id!==id); if(d.lastUserId===id)d.lastUserId=null; saveProfiles(d); }
+function makeUserId(n,d){ return (n.toLowerCase().replace(/\s+/g,'_')+'_'+d).replace(/[^a-z0-9_-]/g,''); }
+
+function applyProfile(p){
+  currentUser=p;
+  selectedTopic = p.topic && TOPICS[p.topic] ? p.topic : 'basic';
+  const validSubs = Object.keys(TOPICS[selectedTopic].subtopics);
+  selectedSubtopic = p.subtopic && validSubs.includes(p.subtopic) ? p.subtopic : validSubs[0];
+  selectedLevel = p.level || 'beginner';
+  selectedVoice = p.voice || 'woman';
+  selectedNative = p.native || 'none';
+  document.getElementById('profileTagName').textContent = p.name;
+  document.getElementById('profileTag').classList.remove('hidden');
+  renderTopicGrid(); renderSubtopicGrid();
+  document.querySelectorAll('[data-level]').forEach(b=>b.classList.toggle('selected',b.dataset.level===selectedLevel));
+  document.querySelectorAll('[data-voice]').forEach(b=>b.classList.toggle('selected',b.dataset.voice===selectedVoice));
+  document.querySelectorAll('[data-native]').forEach(b=>b.classList.toggle('selected',b.dataset.native===selectedNative));
+}
+function persistProfile(){
+  if(!currentUser) return;
+  currentUser.topic=selectedTopic; currentUser.subtopic=selectedSubtopic;
+  currentUser.level=selectedLevel; currentUser.voice=selectedVoice; currentUser.native=selectedNative;
+  currentUser.lastActive=new Date().toISOString();
+  upsertProfile(currentUser);
+}
+
+// ============= Welcome modal =============
+function openModal(html){ document.getElementById('modalContent').innerHTML=html; document.getElementById('welcomeModal').classList.add('show'); }
+function closeModal(){ document.getElementById('welcomeModal').classList.remove('show'); }
+
+function showWelcomeFlow(){
+  const d=loadProfiles();
+  if(d.users.length===0) showNewUserForm(true);
+  else showWelcomeChoice();
+}
+
+function showWelcomeChoice(){
+  const d=loadProfiles();
+  const last=d.lastUserId ? d.users.find(u=>u.id===d.lastUserId) : null;
+  let html=`<h2>Welcome to LinguaCall</h2><div class="sub">Your AI English tutor for daily life.</div>`;
+  if(last){
+    html+=`<div class="welcome-big">
+      <button class="btn btn-primary" onclick="continueAs('${last.id}')">▶  Continue as ${escapeHtml(last.name)}</button>
+      <button class="btn" onclick="showPickProfile()">Switch user</button>
+      <button class="btn" onclick="showNewUserForm()">+ New user</button>
+    </div>`;
+  } else {
+    html+=`<div class="welcome-big">
+      <button class="btn btn-primary" onclick="showNewUserForm()">+ I am a new user</button>
+      <button class="btn" onclick="showPickProfile()">I am a returning user</button>
+    </div>`;
+  }
+  openModal(html);
+}
+
+let modalVoiceSel='woman';
+function pickModalVoice(btn){
+  document.querySelectorAll('[data-modal-voice]').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  modalVoiceSel=btn.dataset.modalVoice;
+}
+
+function showNewUserForm(firstTime){
+  modalVoiceSel='woman';
+  const html=`
+    <h2>${firstTime?'Welcome! Set up your profile':'Add a new user'}</h2>
+    <div class="sub">Nova will remember your progress between sessions.</div>
+    <label>Your name</label>
+    <input id="newName" placeholder="e.g. Adil" autocomplete="off" />
+    <label>Date of birth</label>
+    <input id="newDob" type="date" />
+    <label>Nova's voice</label>
+    <div class="btn-grid four" style="margin-top:4px;">
+      <button class="btn" data-modal-voice="kid-boy" onclick="pickModalVoice(this)">👦<small>Boy</small></button>
+      <button class="btn" data-modal-voice="kid-girl" onclick="pickModalVoice(this)">👧<small>Girl</small></button>
+      <button class="btn" data-modal-voice="man" onclick="pickModalVoice(this)">👨<small>Man</small></button>
+      <button class="btn selected" data-modal-voice="woman" onclick="pickModalVoice(this)">👩<small>Woman</small></button>
+    </div>
+    <div class="modal-actions">
+      ${firstTime?'':'<button class="btn" onclick="showWelcomeChoice()">Back</button>'}
+      <button class="btn btn-primary" onclick="saveNewUser()">Create profile</button>
+    </div>`;
+  openModal(html);
+}
+
+function saveNewUser(){
+  const name=document.getElementById('newName').value.trim();
+  const dob=document.getElementById('newDob').value;
+  if(!name){ showToast('Please enter your name','err'); return; }
+  if(!dob){ showToast('Please enter your date of birth','err'); return; }
+  const id=makeUserId(name,dob);
+  const p={ id, name, dob, voice:modalVoiceSel, topic:'basic', subtopic:'daily_routine', level:'beginner', native:'none', totalTurns:0, lastActive:new Date().toISOString() };
+  upsertProfile(p);
+  applyProfile(p);
+  closeModal();
+  showToast('Welcome, '+name+'!','ok');
+}
+
+function showPickProfile(){
+  const d=loadProfiles();
+  let html=`<h2>Pick your profile</h2><div class="sub">Tap a name to continue.</div>`;
+  if(d.users.length===0){ html+=`<div class="sub">No saved profiles yet.</div>`; }
+  else{
+    d.users.forEach(u=>{
+      const last=u.lastActive?new Date(u.lastActive).toLocaleDateString():'—';
+      html+=`<div class="profile-card">
+        <div class="info" onclick="continueAs('${u.id}')">
+          <div class="name">${escapeHtml(u.name)}</div>
+          <div class="meta">DOB: ${u.dob} • ${last} • ${u.totalTurns||0} turns</div>
+        </div>
+        <button class="del" onclick="confirmDelete('${u.id}','${escapeHtml(u.name).replace(/'/g,"\\'")}')">×</button>
+      </div>`;
+    });
+  }
+  html+=`<div class="modal-actions">
+    <button class="btn" onclick="showWelcomeChoice()">Back</button>
+    <button class="btn btn-primary" onclick="showNewUserForm()">+ New user</button>
+  </div>`;
+  openModal(html);
+}
+
+function confirmDelete(id,name){
+  if(confirm('Delete profile for '+name+'?')) { deleteProfile(id); showPickProfile(); }
+}
+
+function continueAs(id){
+  const p=getProfileById(id);
+  if(!p){ showToast('Profile not found','err'); return; }
+  applyProfile(p);
+  closeModal();
+  showToast('Welcome back, '+p.name+'!','ok');
+}
+
+function openProfileMenu(){ if(inCall) return showToast('End the call first to switch user.','err'); showWelcomeChoice(); }
+
+// ============= Topic & subtopic grids =============
+function renderTopicGrid(){
+  const g=document.getElementById('topicGrid'); g.innerHTML='';
+  Object.entries(TOPICS).forEach(([k,t])=>{
+    const b=document.createElement('button');
+    b.className='btn'+(k===selectedTopic?' selected':'');
+    b.innerHTML=t.label;
+    b.onclick=()=>{ selectedTopic=k; selectedSubtopic=Object.keys(TOPICS[k].subtopics)[0]; renderTopicGrid(); renderSubtopicGrid(); persistProfile(); };
+    g.appendChild(b);
+  });
+}
+function renderSubtopicGrid(){
+  const g=document.getElementById('subtopicGrid'); g.innerHTML='';
+  Object.entries(TOPICS[selectedTopic].subtopics).forEach(([k,s])=>{
+    const b=document.createElement('button');
+    b.className='btn'+(k===selectedSubtopic?' selected':'');
+    b.innerHTML=s.name+(s.mcq?'<small>Multiple choice</small>':'');
+    b.onclick=()=>{ selectedSubtopic=k; renderSubtopicGrid(); persistProfile(); };
+    g.appendChild(b);
+  });
+}
+
+// ============= Selectors =============
+function selectLevel(b){ document.querySelectorAll('[data-level]').forEach(x=>x.classList.remove('selected')); b.classList.add('selected'); selectedLevel=b.dataset.level; persistProfile(); }
+function selectVoice(b){ document.querySelectorAll('[data-voice]').forEach(x=>x.classList.remove('selected')); b.classList.add('selected'); selectedVoice=b.dataset.voice; persistProfile(); previewVoice(); }
+function selectNative(b){ document.querySelectorAll('[data-native]').forEach(x=>x.classList.remove('selected')); b.classList.add('selected'); selectedNative=b.dataset.native; persistProfile(); }
+
+function previewVoice(){
+  synth.cancel();
+  const u=new SpeechSynthesisUtterance("Hello! This is how I sound.");
+  const vp=VOICE_PROFILES[selectedVoice];
+  u.pitch=vp.pitch; u.rate=LEVEL_CONFIG[selectedLevel].rate*vp.rateMod; u.lang='en-US';
+  const v=pickSynthVoice(); if(v) u.voice=v;
+  synth.speak(u);
+}
+
+function pickSynthVoice(){
+  const voices=synth.getVoices();
+  if(!voices.length) return null;
+  const vp=VOICE_PROFILES[selectedVoice];
+  const fH=['female','samantha','karen','sarah','allison','victoria','susan','tessa','fiona','moira','zoe','google us english','google uk english female'];
+  const mH=['male','daniel','george','mark','fred','alex','tom','oliver','google uk english male'];
+  const cs=voices.filter(v=>v.lang.toLowerCase().startsWith('en'));
+  if(!cs.length) return null;
+  const lower=v=>v.name.toLowerCase();
+  let pool=cs;
+  if(vp.prefersFemale){ const f=cs.filter(v=>fH.some(h=>lower(v).includes(h))); if(f.length)pool=f; }
+  else if(vp.prefersMale){ const m=cs.filter(v=>mH.some(h=>lower(v).includes(h))); if(m.length)pool=m; }
+  return pool[0];
+}
+
+// ============= Call control =============
+function toggleCall(){ if(!inCall) startCall(); else endCall(); }
+
+function startCall(){
+  if(!currentUser){ showWelcomeFlow(); return; }
+  if(synth.speaking) synth.cancel();
+  const sub=TOPICS[selectedTopic].subtopics[selectedSubtopic];
+  if(sub && sub.mcq){ startMCQ(); return; }
+  mcqMode=false;
+  document.getElementById('mcqCard').classList.add('hidden');
+  inCall=true; muted=false; callSeconds=0; wordCount=0; turnCount=0; conversationHistory=[];
+  updateStats();
+  document.getElementById('callBtn').classList.add('end');
+  document.getElementById('callBtn').textContent='⏹';
+  document.getElementById('muteBtn').classList.remove('hidden');
+  document.getElementById('skipBtn').classList.remove('hidden');
+  document.getElementById('timerArea').classList.remove('hidden');
+  document.getElementById('callLabel').textContent='Tap to end';
+  setPill('Connecting…','listening');
+  hideCorrection();
+  document.getElementById('userBubble').classList.add('hidden');
+  document.getElementById('userLabel').classList.add('hidden');
+  timerInterval=setInterval(()=>{callSeconds++;updateStats();},1000);
+  const opener=buildOpener();
+  conversationHistory.push({role:'assistant',content:JSON.stringify({reply:opener,native_translation:'',correction:{has_error:false,original:'',corrected:'',note:''}})});
+  renderTurn({reply:opener,native_translation:'',correction:{has_error:false,original:'',corrected:'',note:''}});
+}
+
+function endCall(){
+  inCall=false; isSpeaking=isListening=isThinking=false;
+  stopRecognition(); synth.cancel(); clearWatchdog();
+  if(silenceTimer){clearTimeout(silenceTimer);silenceTimer=null;}
+  if(endpointTimer){clearTimeout(endpointTimer);endpointTimer=null;}
+  clearInterval(timerInterval); timerInterval=null;
+  document.getElementById('callBtn').classList.remove('end');
+  document.getElementById('callBtn').textContent='📞';
+  document.getElementById('muteBtn').classList.add('hidden');
+  document.getElementById('skipBtn').classList.add('hidden');
+  document.getElementById('timerArea').classList.add('hidden');
+  document.getElementById('callLabel').textContent='Tap to start';
+  setPill('Ready','');
+  document.getElementById('avatarInner').className='avatar-inner';
+  hideRetry();
+  if(currentUser){ currentUser.totalTurns=(currentUser.totalTurns||0)+turnCount; persistProfile(); }
+}
+
+function toggleMute(){
+  muted=!muted;
+  const b=document.getElementById('muteBtn');
+  b.classList.toggle('muted',muted);
+  b.textContent=muted?'🔇':'🎤';
+  if(muted) stopRecognition();
+  else if(inCall && !isSpeaking && !isThinking) startListen();
+}
+
+function skipTurn(){
+  if(!inCall) return;
+  stopRecognition(); synth.cancel();
+  isSpeaking=false; isListening=false;
+  setTimeout(()=>fetchAIReply('[User wants to move on. STAY ON THE SAME SUB-TOPIC ('+selectedSubtopic+'). Try a slightly different angle or related question within this sub-topic only.]'),200);
+}
+
+// ============= System prompt =============
+function buildSystem(){
+  const lc=LEVEL_CONFIG[selectedLevel];
+  const topicCfg=TOPICS[selectedTopic];
+  const subCfg=topicCfg.subtopics[selectedSubtopic];
+  const nativeName=NATIVE_NAMES[selectedNative];
+  const samples=(subCfg.samples||[]).map(s=>`  • "${s}"`).join('\n');
+  const nativeInstr=nativeName
     ? `The learner's native language is ${nativeName}. Provide a short ${nativeName} translation of your reply in the "native_translation" field, written in ${nativeName} script.`
-    : `The learner has not set a native language. Leave "native_translation" as an empty string.`;
+    : `Leave "native_translation" as empty string.`;
 
-  return `You are Nova, a friendly and expert ${selectedLang} language tutor for a complete beginner audience, including people who speak little or no English.
-Level: ${lc.label}. ${lc.instructions}
-Mode: ${modeExtra[selectedMode]}
-${nativeInstruction}
+  let modeNote='';
+  if(selectedTopic==='basic'){
+    modeNote=`This is a daily-life conversation focused EXCLUSIVELY on the sub-topic "${subCfg.name}". DRILL DEEPER into this one topic — vocabulary, simple sentences, common phrases. DO NOT switch to any other topic.`;
+  } else if(selectedTopic==='grammar'){
+    modeNote=`This is a grammar lesson on "${subCfg.name}". Teach the grammar rule step by step. Give a tiny example, then ask the learner to make their own sentence using this rule. Stay on this grammar point the entire session.`;
+  } else if(selectedTopic==='story'){
+    modeNote=`Tell an interactive story called "${subCfg.name}". Narrate 1-2 short sentences then ask the learner to choose what happens next. Stay in the story world.`;
+  } else if(selectedTopic==='qa'){
+    modeNote=`Ask simple "${subCfg.name}" questions, one at a time. React to learner's answer, then ask another related question. Stay on this category.`;
+  } else if(selectedTopic==='citizenship'){
+    if(selectedSubtopic==='cit_practice'){ modeNote=`Practice the US naturalization (citizenship) civics test in conversation. Ask one official-style civics question per turn. When learner answers, gently confirm right or correct them. Use simple English.`; }
+    else if(selectedSubtopic==='cit_listen'){ modeNote=`Slowly say one important citizenship-related sentence. Ask learner to repeat it. Praise effort, gently correct.`; }
+  }
 
-You will receive the learner's last spoken/typed sentence in ${selectedLang}. Check it for grammar and word-choice mistakes.
+  return `You are Nova, a warm and patient ${selectedLang} tutor.
 
-Respond with STRICT JSON ONLY. No markdown, no backticks, no extra text outside the JSON object. Use exactly this shape:
+LEARNER:
+- Name: ${currentUser?currentUser.name:'Learner'}
+- Level: ${lc.label}
+- ${lc.instructions}
+
+CURRENT TOPIC (CRITICAL — STAY ON THIS FOR THE ENTIRE SESSION):
+- Main: ${topicCfg.label} (${topicCfg.desc})
+- Sub-topic: ${subCfg.name}
+
+${modeNote}
+
+EXAMPLE SENTENCES for this sub-topic (use these patterns and expand on them):
+${samples}
+
+CRITICAL RULES:
+1. STAY on "${subCfg.name}" for the WHOLE conversation. Do NOT jump to other topics.
+2. After the learner speaks, ALWAYS acknowledge what they said FIRST (e.g., "Good!", "I understand.", "Nice sentence.") before your next sentence.
+3. Keep replies SHORT for ${lc.label} level. Do not overload the learner.
+4. ${nativeInstr}
+
+OUTPUT FORMAT — STRICT JSON ONLY, no markdown, no backticks:
 {
-  "reply": "your 2-3 sentence conversational reply in ${selectedLang}, always ending with a question or prompt",
-  "native_translation": "translation of the reply into the learner's native language, or empty string if none set",
+  "reply": "your short conversational reply, ending with a question or prompt about THE SAME sub-topic",
+  "native_translation": "translation into ${nativeName||'none'}, or empty string",
   "correction": {
     "has_error": true or false,
-    "original": "the learner's exact sentence if there was input to check, else empty string",
-    "corrected": "the corrected version, only if has_error is true, else empty string",
-    "note": "one short, encouraging sentence explaining the fix in simple English, or empty string if no error"
+    "original": "the learner's exact sentence (or empty string if system note in brackets)",
+    "corrected": "corrected version if has_error true, else empty",
+    "note": "one short sentence in simple English explaining the fix, or empty if no error"
   }
 }
 
 Rules:
-- If the learner's input was a system note in brackets like [The learner is listening silently...], set correction.has_error to false and correction.original to empty string — there is nothing to correct.
-- If the learner's sentence was perfect, set has_error to false but still set original to their sentence so we can show encouragement.
+- If learner input was a system note in [brackets], correction.has_error=false and original="".
+- If learner's sentence was perfect, has_error=false but put their sentence in "original" so we can praise.
 - Never repeat the same reply twice in a row.
-- Keep "reply" short: 2-3 sentences max.
-- Output must be valid JSON — no trailing commas, no comments.`;
+- Output must be VALID JSON — no trailing commas.`;
 }
 
-const OPENERS = {
-  companion: () => ({
-    beginner:     `Hello! I am Nova. I am your English teacher. How are you today?`,
-    intermediate: `Hi there! I'm Nova, your ${selectedLang} companion. Let's have a great conversation today. What's been on your mind lately?`,
-    advanced:     `Hello! I'm Nova. Let's dive straight into a rich ${selectedLang} conversation. What's something you've been thinking about recently?`
-  }),
-  lesson: () => ({
-    beginner:     `Hello! Welcome to your lesson. Let's learn "Hello" and "How are you?" Can you say "Hello" to me now?`,
-    intermediate: `Welcome to your ${selectedLang} lesson! Today we'll practice expressing opinions. A useful phrase is "I think that..." — can you use it to tell me your opinion about something?`,
-    advanced:     `Welcome! Today's ${selectedLang} session focuses on nuanced expression. Let's explore conditionals. Can you construct a sentence using "If I had known..."?`
-  }),
-  interview: () => ({
-    beginner:     `Hello! We will practice talking like a job interview. First question: What is your name?`,
-    intermediate: `Welcome to your mock interview in ${selectedLang}! Let's begin. Can you tell me a little about yourself and your professional background?`,
-    advanced:     `Good day. This is your ${selectedLang} interview practice. Let's get straight to it — describe a challenging situation you faced at work and how you resolved it.`
-  }),
-  story: () => ({
-    beginner:     `Hello! Let's tell a story. There was a cat. The cat found a box. What is in the box?`,
-    intermediate: `Let's create a story together in ${selectedLang}! A young traveler arrived in a mysterious town where everyone had forgotten their names. What should the traveler do first?`,
-    advanced:     `Let's co-author a story in ${selectedLang}. In a world where memories could be traded like currency, one person discovered they possessed a memory no one could afford to buy. What happens next?`
-  })
-};
-
-// ── Selectors ─────────────────────────────────────────────────────────────────
-function selectLang(btn) {
-  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  selectedLang = btn.dataset.lang;
-  selectedCode = btn.dataset.code;
-  if (!inCall) setTutorText(`<strong>${selectedLang}</strong> selected. Tap Call to begin!`);
+function buildOpener(){
+  const sub=TOPICS[selectedTopic].subtopics[selectedSubtopic];
+  const name=currentUser?currentUser.name:'friend';
+  if(selectedLevel==='beginner'){
+    return `Hello ${name}! I am Nova. Today we will talk about ${sub.name.toLowerCase()}. Are you ready?`;
+  }
+  return `Hi ${name}! I'm Nova. Today's focus: ${sub.name}. Let's begin — tell me one thing about it.`;
 }
 
-function selectNative(btn) {
-  document.querySelectorAll('.native-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  selectedNative = btn.dataset.native;
-}
-
-function selectLevel(btn) {
-  document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  selectedLevel = btn.dataset.level;
-  const lc = LEVEL_CONFIG[selectedLevel];
-  if (!inCall) setTutorText(`<strong>${lc.label}</strong>: ${lc.desc}`);
-}
-
-function selectMode(btn) {
-  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  selectedMode = btn.dataset.mode;
-}
-
-// ── Call Control ──────────────────────────────────────────────────────────────
-function toggleCall() {
-  if (!inCall) startCall(); else endCall();
-}
-
-function startCall() {
-  if (!('speechSynthesis' in window)) { showToast('Speech not supported on this device/browser', 'err'); return; }
-  inCall = true;
-  conversationHistory = [];
-  wordCount = 0; turnCount = 0; callSeconds = 0;
-  lastFailedInput = null;
-  hideCorrection();
-  hideRetry();
-  updateStats();
-
-  const cb = document.getElementById('callBtn');
-  cb.className = 'call-btn hangup'; cb.textContent = '📵';
-  document.getElementById('muteBtn').classList.remove('hidden');
-  document.getElementById('skipBtn').classList.remove('hidden');
-  document.getElementById('timerArea').classList.remove('hidden');
-  document.getElementById('callLabel').textContent = 'Session in progress...';
-  setPill('Live', 'active');
-
-  timerInterval = setInterval(() => {
-    callSeconds++;
-    const m = Math.floor(callSeconds/60), s = callSeconds%60;
-    document.getElementById('callTimer').textContent = `${m}:${s.toString().padStart(2,'0')}`;
-    document.getElementById('statTime').textContent = `${m}:${s.toString().padStart(2,'0')}`;
-  }, 1000);
-
-  startWaveAnim();
-  startRingAnim();
-
-  const openerMap = OPENERS[selectedMode]();
-  const opener = openerMap[selectedLevel];
-  conversationHistory.push({ role: 'assistant', content: JSON.stringify({ reply: opener, native_translation: '', correction: { has_error:false, original:'', corrected:'', note:'' } }) });
-  renderTurn({ reply: opener, native_translation: '', correction: { has_error:false, original:'', corrected:'', note:'' } });
-}
-
-function endCall() {
-  inCall = false;
+// ============= Speak (TTS) =============
+function speak(text){
+  if(!inCall) return;
+  clearWatchdog();
+  isSpeaking=true; isListening=false; isThinking=false;
+  document.getElementById('avatarInner').className='avatar-inner speaking';
+  setPill('Speaking','active');
+  wordCount+=text.split(' ').length; turnCount++; updateStats();
   synth.cancel();
-  stopRecognition();
-  clearInterval(timerInterval);
-  clearWatchdog();
-
-  const cb = document.getElementById('callBtn');
-  cb.className = 'call-btn dial'; cb.textContent = '📞';
-  document.getElementById('muteBtn').classList.add('hidden');
-  document.getElementById('skipBtn').classList.add('hidden');
-  document.getElementById('timerArea').classList.add('hidden');
-  document.getElementById('callLabel').textContent = 'Session ended. Tap to start again.';
-  document.getElementById('avatarInner').classList.remove('speaking','mic-on');
-  setPill('Ready', '');
-  setTutorText('Great session! 🌟 Tap Call to practice again.');
-  hideCorrection();
-  hideRetry();
-  isSpeaking = false; isListening = false; isThinking = false;
-}
-
-// ── Watchdog: this is the core fix for "getting stuck" ────────────────────────
-// If, for any reason, the app doesn't reach a clear next state (speaking,
-// listening, or thinking) within 12 seconds, force it back to listening so
-// the conversation never silently freezes.
-function armWatchdog() {
-  clearWatchdog();
-  watchdogTimer = setTimeout(() => {
-    if (!inCall) return;
-    if (!isSpeaking && !isListening && !isThinking) {
-      showRetry();
-    }
-  }, 20000); // 20s — long enough to allow 3 retries with backoff (1s+2s+4s + Gemini time)
-}
-function clearWatchdog() {
-  if (watchdogTimer) { clearTimeout(watchdogTimer); watchdogTimer = null; }
-}
-
-// ── Speak ─────────────────────────────────────────────────────────────────────
-function speak(text) {
-  if (!inCall) return;
-  clearWatchdog();
-  isSpeaking = true; isListening = false; isThinking = false;
-  document.getElementById('avatarInner').className = 'avatar-inner speaking';
-  setPill('Speaking', 'active');
-  wordCount += text.split(' ').length;
-  turnCount++;
-  updateStats();
-
-  synth.cancel();
-  const utt = new SpeechSynthesisUtterance(text);
-  utt.lang = selectedCode;
-  utt.rate = LEVEL_CONFIG[selectedLevel].rate;
-  utt.pitch = 1.05;
-
-  const voices = synth.getVoices();
-  const langPrefix = selectedCode.split('-')[0];
-  const match = voices.find(v => v.lang.startsWith(langPrefix));
-  if (match) utt.voice = match;
-
-  utt.onend = () => {
-    if (!inCall) return;
-    isSpeaking = false;
-    document.getElementById('avatarInner').className = 'avatar-inner';
-    if (!muted) {
-      armWatchdog();
-      setTimeout(() => { if (inCall && !isSpeaking) startListen(); }, 300);
-    }
+  const utt=new SpeechSynthesisUtterance(text);
+  const vp=VOICE_PROFILES[selectedVoice];
+  utt.lang='en-US';
+  utt.rate=LEVEL_CONFIG[selectedLevel].rate*vp.rateMod;
+  utt.pitch=vp.pitch;
+  const v=pickSynthVoice(); if(v) utt.voice=v;
+  utt.onend=()=>{
+    if(!inCall) return;
+    isSpeaking=false;
+    document.getElementById('avatarInner').className='avatar-inner';
+    if(!muted){ armWatchdog(); setTimeout(()=>{ if(inCall && !isSpeaking) startListen(); },500); }
   };
-
-  utt.onerror = () => {
-    isSpeaking = false;
-    document.getElementById('avatarInner').className = 'avatar-inner';
-    if (inCall && !muted) { armWatchdog(); setTimeout(() => { if (inCall) startListen(); }, 500); }
+  utt.onerror=()=>{
+    isSpeaking=false;
+    document.getElementById('avatarInner').className='avatar-inner';
+    if(inCall && !muted){ armWatchdog(); setTimeout(()=>{ if(inCall) startListen(); },600); }
   };
-
-  // Safety net: some browsers never fire onend reliably. Force a fallback
-  // after a generous timeout based on text length so we never hang forever.
-  const estMs = Math.max(2500, text.split(' ').length * 450);
-  setTimeout(() => {
-    if (inCall && isSpeaking) {
-      isSpeaking = false;
-      document.getElementById('avatarInner').className = 'avatar-inner';
-      if (!muted) { armWatchdog(); startListen(); }
+  const estMs=Math.max(2500,text.split(' ').length*500);
+  setTimeout(()=>{
+    if(inCall && isSpeaking){
+      isSpeaking=false;
+      document.getElementById('avatarInner').className='avatar-inner';
+      if(!muted){ armWatchdog(); startListen(); }
     }
-  }, estMs + 4000);
-
+  },estMs+4000);
   synth.speak(utt);
 }
 
-// ── Listen ────────────────────────────────────────────────────────────────────
-function startListen() {
-  if (!inCall || isListening || isSpeaking || isThinking) return;
-  clearWatchdog();
-  hideRetry();
-
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) {
-    setPill('Auto', 'listening');
-    setTutorText('<span class="typing-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>');
-    armWatchdog();
-    setTimeout(() => { if (inCall && !isSpeaking) fetchAIReply('[The learner is listening silently. Ask them an interesting question on a new topic.]'); }, 3500);
+// ============= Listen — waits 3s of silence before sending =============
+function startListen(){
+  if(!inCall||isListening||isSpeaking||isThinking) return;
+  clearWatchdog(); hideRetry();
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){
+    setPill('Auto','listening'); armWatchdog();
+    setTimeout(()=>{ if(inCall && !isSpeaking) fetchAIReply('[Learner is listening. Continue with the same sub-topic.]'); },3500);
     return;
   }
-
-  isListening = true;
-  document.getElementById('avatarInner').className = 'avatar-inner mic-on';
-  setPill('Listening…', 'listening');
-  setTutorText('<span class="typing-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>');
-  document.getElementById('transText').textContent = 'Speak now — Nova is listening…';
+  isListening=true;
+  lastTranscriptInterim=''; lastTranscriptFinal='';
+  document.getElementById('avatarInner').className='avatar-inner mic-on';
+  setPill('Listening… speak now','listening');
+  document.getElementById('transText').textContent='Speak naturally. Nova will wait until you finish.';
   armWatchdog();
-
   stopRecognition();
-  recognition = new SR();
-  recognition.lang = selectedCode;
-  recognition.continuous = false;
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
+  recognition=new SR();
+  recognition.lang='en-US';
+  recognition.continuous=true;
+  recognition.interimResults=true;
+  recognition.maxAlternatives=1;
 
-  let silenceTimer = setTimeout(() => {
-    if (isListening) {
-      stopRecognition();
-      isListening = false;
-      if (inCall && !isSpeaking) {
-        fetchAIReply('[The learner was quiet. Gently encourage them with a new friendly question on a different topic.]');
+  if(silenceTimer) clearTimeout(silenceTimer);
+  silenceTimer=setTimeout(()=>{
+    if(isListening && !lastTranscriptFinal.trim() && !lastTranscriptInterim.trim()){
+      stopRecognition(); isListening=false;
+      if(inCall && !isSpeaking){
+        fetchAIReply('[The learner was quiet. Gently encourage them to try one simple sentence about the same sub-topic.]');
       }
     }
-  }, 7000);
+  },15000);
 
-  recognition.onresult = (e) => {
-    clearTimeout(silenceTimer);
-    isListening = false;
-    stopRecognition();
-    const transcript = Array.from(e.results).map(r => r[0].transcript).join(' ').trim();
-    if (transcript) {
-      showUserSaid(transcript);
-      document.getElementById('transText').textContent = `You said: "${transcript}"`;
-      fetchAIReply(transcript);
-    } else {
-      fetchAIReply('[unclear, ask them to repeat or try a new topic]');
+  recognition.onresult=(e)=>{
+    let interim='', finalT='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const t=e.results[i][0].transcript;
+      if(e.results[i].isFinal) finalT+=t+' ';
+      else interim+=t+' ';
+    }
+    lastTranscriptFinal=(lastTranscriptFinal+finalT).trim();
+    lastTranscriptInterim=interim.trim();
+    const combined=(lastTranscriptFinal+' '+lastTranscriptInterim).trim();
+    if(combined){
+      document.getElementById('transText').textContent='"'+combined+'"';
+      if(endpointTimer) clearTimeout(endpointTimer);
+      endpointTimer=setTimeout(()=>{ finalizeUserTurn(); },3000);
     }
   };
 
-  recognition.onerror = (e) => {
-    clearTimeout(silenceTimer);
-    isListening = false;
-    document.getElementById('avatarInner').className = 'avatar-inner';
-    if (!inCall) return;
-    if (e.error === 'not-allowed') {
-      showToast('Microphone access denied. Allow mic, or type your answer using Skip.', 'err');
-      fetchAIReply('[Microphone unavailable. Continue engaging the learner with a varied interesting question.]');
-    } else if (e.error === 'no-speech') {
-      fetchAIReply('[No speech detected. Gently prompt learner with a fresh, engaging question on a new topic.]');
-    } else {
-      fetchAIReply('[Technical issue. Continue the conversation naturally with a new question.]');
+  recognition.onerror=(e)=>{
+    if(endpointTimer) clearTimeout(endpointTimer);
+    if(silenceTimer) clearTimeout(silenceTimer);
+    isListening=false;
+    document.getElementById('avatarInner').className='avatar-inner';
+    if(!inCall) return;
+    if(e.error==='not-allowed'){ showToast('Mic access denied. Allow mic in settings.','err'); fetchAIReply('[Mic unavailable. Continue gently.]'); }
+    else if(e.error==='no-speech'||e.error==='aborted'){ /* expected */ }
+    else fetchAIReply('[Tech issue. Continue on same sub-topic.]');
+  };
+
+  recognition.onend=()=>{
+    if(isListening){
+      isListening=false;
+      document.getElementById('avatarInner').className='avatar-inner';
+      if(lastTranscriptFinal.trim()||lastTranscriptInterim.trim()) finalizeUserTurn();
     }
   };
 
-  recognition.onend = () => {
-    clearTimeout(silenceTimer);
-    if (isListening) {
-      isListening = false;
-      document.getElementById('avatarInner').className = 'avatar-inner';
-    }
-  };
-
-  try { recognition.start(); }
-  catch(e) {
-    isListening = false;
-    armWatchdog();
-    setTimeout(() => { if (inCall && !isSpeaking) fetchAIReply('[Continue the conversation with a new question.]'); }, 1000);
+  try{ recognition.start(); }
+  catch(e){
+    isListening=false; armWatchdog();
+    setTimeout(()=>{ if(inCall && !isSpeaking) fetchAIReply('[Continue same sub-topic with a simple question.]'); },1000);
   }
 }
 
-function stopRecognition() {
-  if (recognition) {
-    try { recognition.abort(); } catch(e) {}
-    recognition = null;
-  }
+function finalizeUserTurn(){
+  if(endpointTimer){clearTimeout(endpointTimer);endpointTimer=null;}
+  if(silenceTimer){clearTimeout(silenceTimer);silenceTimer=null;}
+  const transcript=(lastTranscriptFinal+' '+lastTranscriptInterim).trim();
+  isListening=false;
+  stopRecognition();
+  document.getElementById('avatarInner').className='avatar-inner';
+  if(transcript){ showUserSaid(transcript); fetchAIReply(transcript); }
+  else fetchAIReply('[unclear, ask them to repeat in a friendly way.]');
+  lastTranscriptFinal=''; lastTranscriptInterim='';
 }
 
-// ── Fetch with retry-on-overload ──────────────────────────────────────────────
-// Gemini's free tier occasionally returns 503 ("model is currently experiencing
-// high demand") or 429 (rate limited). These are almost always transient — a
-// short wait and retry usually succeeds. This wrapper retries up to 3 times
-// with exponential backoff (1s, 2s, 4s) before giving up. Other errors (auth,
-// bad request, etc.) are returned immediately since retrying won't help.
-async function fetchWithRetry(url, options, maxAttempts = 3) {
+function stopRecognition(){ if(recognition){ try{recognition.abort();}catch(e){} recognition=null; } }
+
+// ============= Fetch with retry =============
+async function fetchWithRetry(url,options,maxAttempts=3){
   let lastErr;
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    try {
-      const res = await fetch(url, options);
-      // Retry only on transient server-side issues
-      if ((res.status === 503 || res.status === 429 || res.status === 502 || res.status === 504) && attempt < maxAttempts) {
-        const waitMs = Math.pow(2, attempt - 1) * 1000; // 1s, 2s, 4s
-        setPill(`Nova thinking… (retry ${attempt})`, 'listening');
-        await new Promise(r => setTimeout(r, waitMs));
+  for(let attempt=1;attempt<=maxAttempts;attempt++){
+    try{
+      const res=await fetch(url,options);
+      if((res.status===503||res.status===429||res.status===502||res.status===504) && attempt<maxAttempts){
+        await new Promise(r=>setTimeout(r,Math.pow(2,attempt-1)*1000));
+        setPill('Thinking… (retry '+attempt+')','listening');
         continue;
       }
       return res;
-    } catch (err) {
-      // Network-level failure (offline, DNS, etc.) — also retry
-      lastErr = err;
-      if (attempt < maxAttempts) {
-        const waitMs = Math.pow(2, attempt - 1) * 1000;
-        setPill(`Reconnecting… (${attempt})`, 'listening');
-        await new Promise(r => setTimeout(r, waitMs));
-        continue;
-      }
+    }catch(err){
+      lastErr=err;
+      if(attempt<maxAttempts){ await new Promise(r=>setTimeout(r,Math.pow(2,attempt-1)*1000)); continue; }
       throw lastErr;
     }
   }
-  // If we exited the loop without returning, throw the last error
-  throw lastErr || new Error('All retries exhausted');
+  throw lastErr||new Error('All retries exhausted');
 }
 
-// ── AI Reply (now parses strict JSON, and ALWAYS recovers on failure) ─────────
-async function fetchAIReply(userInput) {
-  if (!inCall || isThinking || isSpeaking) return;
-  isThinking = true;
-  isListening = false;
-  lastFailedInput = userInput;
-  document.getElementById('avatarInner').className = 'avatar-inner';
-  setPill('Thinking…', 'listening');
+async function fetchAIReply(userInput){
+  if(!inCall||isThinking||isSpeaking) return;
+  isThinking=true; isListening=false;
+  lastFailedInput=userInput;
+  document.getElementById('avatarInner').className='avatar-inner';
+  setPill('Thinking…','listening');
   setTutorText('<span class="typing-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>');
-  hideCorrection();
-  armWatchdog();
-
-  conversationHistory.push({ role: 'user', content: userInput });
-  const msgs = conversationHistory.slice(-8);
-
-  if (BACKEND_URL.includes('YOURNAME')) {
-    isThinking = false;
-    showToast('Setup needed: open index.html and set BACKEND_URL to your real Worker link.', 'err');
-    showRetry();
-    return;
-  }
-
-  try {
-    const res = await fetchWithRetry(BACKEND_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system: buildSystem(),
-        messages: msgs
-      })
-    });
-
-    if (!res.ok) throw new Error(`API ${res.status}`);
-    const data = await res.json();
-    const rawText = data.content?.find(c => c.type === 'text')?.text?.trim();
-    if (!rawText) throw new Error('Empty response');
-
-    const parsed = parseTutorJSON(rawText);
-    if (!parsed || !parsed.reply) throw new Error('Bad JSON shape');
-
-    conversationHistory.push({ role: 'assistant', content: JSON.stringify(parsed) });
-    isThinking = false;
-    lastFailedInput = null;
-    clearWatchdog();
-    document.getElementById('transText').textContent = selectedLang !== 'English'
-      ? `Nova is speaking ${selectedLang}. Listen carefully!`
-      : 'Speak naturally — Nova will guide you.';
+  hideCorrection(); armWatchdog();
+  conversationHistory.push({role:'user',content:userInput});
+  const msgs=conversationHistory.slice(-8);
+  try{
+    const res=await fetchWithRetry(BACKEND_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:buildSystem(),messages:msgs})});
+    if(!res.ok) throw new Error('API '+res.status);
+    const data=await res.json();
+    const rawText=data.content?.find(c=>c.type==='text')?.text?.trim();
+    if(!rawText) throw new Error('Empty');
+    const parsed=parseTutorJSON(rawText);
+    if(!parsed||!parsed.reply) throw new Error('Bad JSON');
+    conversationHistory.push({role:'assistant',content:JSON.stringify(parsed)});
+    isThinking=false; lastFailedInput=null; clearWatchdog();
+    document.getElementById('transText').textContent='Nova is speaking…';
     renderTurn(parsed);
-
-  } catch (err) {
-    isThinking = false;
-    console.error('API error:', err);
+  } catch(err){
+    isThinking=false;
+    console.error('API error:',err);
     showRetry();
-    showToast('Nova had trouble responding. Tap retry, or she will continue shortly.', 'err');
-    // Soft auto-recovery: don't leave the user stuck forever even if they
-    // don't notice the retry button — pick a safe fallback after a pause.
-    setTimeout(() => {
-      if (inCall && !isSpeaking && !isThinking && !isListening) {
-        const fallbacks = [
-          `Let's keep going! Tell me, what do you enjoy doing in your free time?`,
-          `Interesting! What's your favorite food and why do you like it?`,
-          `That's great! Can you describe your neighborhood or city to me?`,
-          `Let's try something fun — what is your favorite movie or show?`,
-          `I'd love to know — if you could travel anywhere, where would you go?`
-        ];
-        const fallback = fallbacks[turnCount % fallbacks.length];
-        conversationHistory.push({ role: 'assistant', content: JSON.stringify({ reply: fallback, native_translation: '', correction: { has_error:false, original:'', corrected:'', note:'' } }) });
+    showToast('Nova had trouble — tap retry or wait.','err');
+    setTimeout(()=>{
+      if(inCall && !isSpeaking && !isThinking && !isListening){
+        const sub=TOPICS[selectedTopic].subtopics[selectedSubtopic];
+        const ex=(sub.samples&&sub.samples.length)?sub.samples[turnCount%sub.samples.length]:"Let's keep going!";
+        const fb="Let's stay on "+sub.name+". Try: "+ex+" — can you say something like that?";
+        conversationHistory.push({role:'assistant',content:JSON.stringify({reply:fb,native_translation:'',correction:{has_error:false,original:'',corrected:'',note:''}})});
         hideRetry();
-        renderTurn({ reply: fallback, native_translation: '', correction: { has_error:false, original:'', corrected:'', note:'' } });
+        renderTurn({reply:fb,native_translation:'',correction:{has_error:false,original:'',corrected:'',note:''}});
       }
-    }, 10000);
+    },10000);
   }
 }
 
-function parseTutorJSON(raw) {
-  let cleaned = raw.trim();
-  // Strip accidental markdown fences
-  cleaned = cleaned.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/```\s*$/, '');
-  try {
-    return JSON.parse(cleaned);
-  } catch (e) {
-    // Try to salvage a JSON object embedded in extra text
-    const match = cleaned.match(/\{[\s\S]*\}/);
-    if (match) {
-      try { return JSON.parse(match[0]); } catch (e2) { return null; }
-    }
+function parseTutorJSON(raw){
+  let c=raw.trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```\s*$/,'');
+  try{ return JSON.parse(c); }
+  catch(e){
+    const m=c.match(/\{[\s\S]*\}/);
+    if(m){ try{ return JSON.parse(m[0]); }catch(e2){return null;} }
     return null;
   }
 }
 
-function retryLastTurn() {
-  if (!lastFailedInput) { hideRetry(); return; }
+function retryLastTurn(){
+  if(!inCall||!lastFailedInput) return;
   hideRetry();
-  const input = lastFailedInput;
-  // remove the dangling user turn we already pushed, to avoid duplicates
-  if (conversationHistory.length && conversationHistory[conversationHistory.length-1].role === 'user') {
-    conversationHistory.pop();
-  }
-  fetchAIReply(input);
+  fetchAIReply(lastFailedInput);
 }
 
-function showRetry() { document.getElementById('retryRow').classList.add('show'); setPill('Stuck?', 'error'); }
-function hideRetry() { document.getElementById('retryRow').classList.remove('show'); }
-
-// ── Render a tutor turn: speech + correction card + native translation ────────
-function renderTurn(parsed) {
-  setTutorText(parsed.reply);
-
-  const nl = document.getElementById('nativeLine');
-  if (parsed.native_translation && parsed.native_translation.trim()) {
-    nl.textContent = parsed.native_translation;
-    nl.classList.add('show');
-  } else {
-    nl.classList.remove('show');
-  }
-
-  renderCorrection(parsed.correction);
+// ============= Render =============
+function renderTurn(parsed){
+  setTutorText(escapeHtml(parsed.reply));
+  const nl=document.getElementById('nativeLine');
+  nl.textContent=(parsed.native_translation && parsed.native_translation.trim()) ? parsed.native_translation : '';
+  const c=parsed.correction||{};
+  if(c.original && c.original.trim()) showCorrection(c);
+  else hideCorrection();
   speak(parsed.reply);
 }
 
-function renderCorrection(corr) {
-  const card = document.getElementById('correctionCard');
-  if (!corr || !corr.original || !corr.original.trim()) { hideCorrection(); return; }
-
-  const label = document.getElementById('corrLabel');
-  const origEl = document.getElementById('corrOriginal');
-  const fixedEl = document.getElementById('corrFixed');
-  const noteEl = document.getElementById('corrNote');
-
-  if (corr.has_error && corr.corrected) {
-    card.classList.add('show', 'has-fix');
-    label.textContent = 'Let\'s fix this';
-    label.className = 'corr-label fix';
-    origEl.textContent = corr.original;
-    origEl.className = 'corr-line strike';
-    fixedEl.textContent = corr.corrected;
-    fixedEl.classList.remove('hidden');
-    noteEl.textContent = corr.note || '';
+function showCorrection(c){
+  const card=document.getElementById('correctionCard');
+  card.classList.add('show');
+  const label=document.getElementById('corrLabel');
+  const orig=document.getElementById('corrOriginal');
+  const fixed=document.getElementById('corrFixed');
+  const note=document.getElementById('corrNote');
+  if(c.has_error){
+    label.textContent='Better way:'; label.className='corr-label fix';
+    orig.textContent='✗ '+c.original;
+    fixed.textContent='✓ '+c.corrected; fixed.classList.remove('hidden');
+    note.textContent=c.note||'';
   } else {
-    card.classList.add('show');
-    card.classList.remove('has-fix');
-    label.textContent = 'Nice! Correct';
-    label.className = 'corr-label ok';
-    origEl.textContent = corr.original;
-    origEl.className = 'corr-line good';
-    fixedEl.classList.add('hidden');
-    noteEl.textContent = corr.note || '';
+    label.textContent='Nice! Correct'; label.className='corr-label ok';
+    orig.textContent='✓ '+c.original;
+    fixed.classList.add('hidden');
+    note.textContent=c.note||'';
   }
 }
+function hideCorrection(){ document.getElementById('correctionCard').classList.remove('show'); }
 
-function hideCorrection() {
-  document.getElementById('correctionCard').classList.remove('show', 'has-fix');
-}
-
-// ── Skip ──────────────────────────────────────────────────────────────────────
-function skipTurn() {
-  synth.cancel();
-  stopRecognition();
-  clearWatchdog();
-  hideRetry();
-  isSpeaking = false; isListening = false; isThinking = false;
-  if (inCall) {
-    setTimeout(() => fetchAIReply('[User skipped. Move on to a fresh, different conversation topic with a new question.]'), 300);
-  }
-}
-
-// ── Mute ──────────────────────────────────────────────────────────────────────
-function toggleMute() {
-  muted = !muted;
-  const btn = document.getElementById('muteBtn');
-  btn.textContent = muted ? '🔇' : '🎤';
-  btn.classList.toggle('muted', muted);
-  if (muted) { stopRecognition(); clearWatchdog(); }
-  document.getElementById('transText').textContent = muted ? 'Muted — tap mic to unmute.' : 'Speak clearly after Nova finishes.';
-}
-
-// ── UI helpers ────────────────────────────────────────────────────────────────
-function setTutorText(html) { document.getElementById('tutorText').innerHTML = html; }
-
-function showUserSaid(text) {
-  document.getElementById('userText').textContent = text;
+function showUserSaid(t){
+  document.getElementById('userText').textContent=t;
   document.getElementById('userBubble').classList.remove('hidden');
   document.getElementById('userLabel').classList.remove('hidden');
 }
+function setTutorText(html){ document.getElementById('tutorText').innerHTML=html; }
+function setPill(text,cls){ const p=document.getElementById('statusPill'); p.textContent=text; p.className='status-pill'+(cls?' '+cls:''); }
+function showRetry(){ document.getElementById('retryRow').classList.add('show'); }
+function hideRetry(){ document.getElementById('retryRow').classList.remove('show'); }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
 
-function updateStats() {
-  document.getElementById('statWords').textContent = wordCount;
-  document.getElementById('statTurns').textContent = turnCount;
+function updateStats(){
+  document.getElementById('statWords').textContent=wordCount;
+  document.getElementById('statTurns').textContent=turnCount;
+  const m=Math.floor(callSeconds/60), s=callSeconds%60;
+  const t=m+':'+String(s).padStart(2,'0');
+  document.getElementById('statTime').textContent=t;
+  document.getElementById('callTimer').textContent=t;
 }
 
-function setPill(text, cls) {
-  const p = document.getElementById('statusPill');
-  p.textContent = text;
-  p.className = 'status-pill' + (cls ? ' ' + cls : '');
+function armWatchdog(){
+  clearWatchdog();
+  watchdogTimer=setTimeout(()=>{
+    if(!inCall) return;
+    if(!isSpeaking && !isListening && !isThinking) showRetry();
+  },25000);
+}
+function clearWatchdog(){ if(watchdogTimer){clearTimeout(watchdogTimer);watchdogTimer=null;} }
+
+function showToast(msg,kind){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast show'+(kind?' '+kind:'');
+  setTimeout(()=>t.classList.remove('show'),3000);
 }
 
-function showToast(msg, type='') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast' + (type ? ' '+type : '');
-  t.style.display = 'block';
-  setTimeout(() => { t.style.display = 'none'; }, 4000);
+// ============= MCQ =============
+function startMCQ(){
+  mcqMode=true; mcqIdx=0; mcqScoreVal=0; mcqAnswered=false;
+  mcqQueue=[...CIT_QUESTIONS].sort(()=>Math.random()-0.5).slice(0,10);
+  inCall=true; callSeconds=0; turnCount=0; wordCount=0; updateStats();
+  document.getElementById('mcqCard').classList.remove('hidden');
+  document.getElementById('callBtn').classList.add('end');
+  document.getElementById('callBtn').textContent='⏹';
+  document.getElementById('timerArea').classList.remove('hidden');
+  document.getElementById('callLabel').textContent='Tap to end test';
+  setPill('Test in progress','active');
+  timerInterval=setInterval(()=>{callSeconds++;updateStats();},1000);
+  document.getElementById('mcqQTotal').textContent=mcqQueue.length;
+  document.getElementById('userBubble').classList.add('hidden');
+  document.getElementById('userLabel').classList.add('hidden');
+  hideCorrection();
+  renderMCQ();
 }
 
-// ── Waveform ──────────────────────────────────────────────────────────────────
-function startWaveAnim() {
-  if (animFrame) cancelAnimationFrame(animFrame);
-  const canvas = document.getElementById('waveCanvas');
-  const ctx = canvas.getContext('2d');
-  canvas.width = canvas.offsetWidth * devicePixelRatio;
-  canvas.height = canvas.offsetHeight * devicePixelRatio;
-  ctx.scale(devicePixelRatio, devicePixelRatio);
+function renderMCQ(){
+  if(mcqIdx>=mcqQueue.length){ finishMCQ(); return; }
+  const q=mcqQueue[mcqIdx];
+  document.getElementById('mcqQNum').textContent=(mcqIdx+1);
+  document.getElementById('mcqScore').textContent=mcqScoreVal;
+  document.getElementById('mcqQuestion').textContent=q.q;
+  const choices=[q.a,...q.w].map(c=>({text:c,correct:c===q.a})).sort(()=>Math.random()-0.5);
+  const box=document.getElementById('mcqChoices');
+  box.innerHTML='';
+  choices.forEach(c=>{
+    const b=document.createElement('button');
+    b.className='mcq-choice';
+    b.textContent=c.text;
+    b.onclick=()=>answerMCQ(b,c.correct,q.a);
+    box.appendChild(b);
+  });
+  document.getElementById('mcqFeedback').classList.remove('show');
+  document.getElementById('mcqNextRow').classList.add('hidden');
+  mcqAnswered=false;
+  setTutorText('Read the question and tap your answer.');
+  document.getElementById('nativeLine').textContent='';
+  speakSimple(q.q);
+}
 
-  function draw() {
-    const w = canvas.offsetWidth, h = canvas.offsetHeight;
-    ctx.clearRect(0, 0, w, h);
-    const active = isSpeaking || isListening;
-    const amp = active ? 11 : 2;
-    wavePhase += isSpeaking ? 0.08 : isListening ? 0.05 : 0.02;
+function answerMCQ(btn,correct,correctAnswer){
+  if(mcqAnswered) return;
+  mcqAnswered=true;
+  document.querySelectorAll('.mcq-choice').forEach(b=>{
+    b.disabled=true;
+    if(b.textContent===correctAnswer) b.classList.add('correct');
+  });
+  if(correct){
+    btn.classList.add('correct');
+    mcqScoreVal++;
+    document.getElementById('mcqScore').textContent=mcqScoreVal;
+    showMCQFeedback('✓ Correct! Well done.','ok');
+    speakSimple('Correct!');
+  } else {
+    btn.classList.add('wrong');
+    showMCQFeedback('✗ Not quite. The correct answer is: '+correctAnswer,'bad');
+    speakSimple('The correct answer is: '+correctAnswer);
+  }
+  document.getElementById('mcqNextRow').classList.remove('hidden');
+}
+
+function showMCQFeedback(text,kind){
+  const f=document.getElementById('mcqFeedback');
+  f.textContent=text;
+  f.className='mcq-feedback show '+kind;
+}
+
+function nextMCQ(){ mcqIdx++; renderMCQ(); }
+
+function finishMCQ(){
+  const pct=Math.round((mcqScoreVal/mcqQueue.length)*100);
+  const msg='Test finished! You scored '+mcqScoreVal+' out of '+mcqQueue.length+' ('+pct+'%). '+(pct>=60?'You passed!':'Keep practicing — you can do this.');
+  document.getElementById('mcqQuestion').textContent='🎉 '+msg;
+  document.getElementById('mcqChoices').innerHTML='';
+  document.getElementById('mcqFeedback').classList.remove('show');
+  document.getElementById('mcqNextRow').classList.add('hidden');
+  speakSimple(msg);
+  if(currentUser){
+    currentUser.citizenshipScore={correct:mcqScoreVal,total:mcqQueue.length,lastPct:pct,when:new Date().toISOString()};
+    upsertProfile(currentUser);
+  }
+  setTimeout(()=>endCall(),5000);
+}
+
+function speakSimple(text){
+  synth.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  const vp=VOICE_PROFILES[selectedVoice];
+  u.lang='en-US';
+  u.rate=LEVEL_CONFIG[selectedLevel].rate*vp.rateMod;
+  u.pitch=vp.pitch;
+  const v=pickSynthVoice(); if(v) u.voice=v;
+  synth.speak(u);
+}
+
+// ============= Wave animation =============
+function startWaveAnim(){
+  const canvas=document.getElementById('waveCanvas');
+  const ctx=canvas.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  function resize(){ canvas.width=canvas.clientWidth*dpr; canvas.height=canvas.clientHeight*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); }
+  resize();
+  window.addEventListener('resize',resize);
+  function draw(){
+    const w=canvas.clientWidth, h=canvas.clientHeight;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    wavePhase+=0.05;
+    const amp=(isSpeaking||isListening)?6:2;
+    ctx.strokeStyle=isSpeaking?'#a78bfa':isListening?'#22d3a0':'#3a3a4a';
+    ctx.lineWidth=1.5;
     ctx.beginPath();
-    ctx.strokeStyle = isSpeaking ? '#6c63ff' : isListening ? '#22d3a0' : '#2a2a3a';
-    ctx.lineWidth = 2;
-    ctx.globalAlpha = active ? 0.85 : 0.35;
-    for (let x = 0; x <= w; x++) {
-      const y = h/2 + Math.sin((x/w)*Math.PI*4+wavePhase)*amp + Math.sin((x/w)*Math.PI*7+wavePhase*1.4)*(amp*0.45);
-      x === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    for(let x=0;x<=w;x+=2){
+      const y=h/2+Math.sin((x*0.03)+wavePhase)*amp+Math.sin((x*0.07)+wavePhase*1.3)*(amp/2);
+      if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
     }
-    ctx.stroke(); ctx.globalAlpha = 1;
-    animFrame = requestAnimationFrame(draw);
+    ctx.stroke();
+    animFrame=requestAnimationFrame(draw);
   }
   draw();
 }
 
-function startRingAnim() {
-  if (ringFrame) cancelAnimationFrame(ringFrame);
-  const canvas = document.getElementById('ringCanvas');
-  const ctx = canvas.getContext('2d');
-  let angle = 0;
-  function draw() {
-    if (!inCall) { ctx.clearRect(0,0,130,130); return; }
-    ctx.clearRect(0,0,130,130);
-    angle += 0.025;
-    const active = isSpeaking || isListening;
-    const color = isSpeaking ? '#6c63ff' : isListening ? '#22d3a0' : '#2a2a3a';
-    const count = active ? 3 : 1;
-    for (let i = 0; i < count; i++) {
-      const a = angle + (i * Math.PI*2/count);
-      ctx.beginPath();
-      ctx.arc(65,65,62,a,a+Math.PI*1.3);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2.5;
-      ctx.globalAlpha = active ? 0.75 : 0.25;
-      ctx.stroke(); ctx.globalAlpha = 1;
-    }
-    ringFrame = requestAnimationFrame(draw);
-  }
-  draw();
-}
-
-// ── Init ──────────────────────────────────────────────────────────────────────
-window.speechSynthesis.onvoiceschanged = () => {};
-window.addEventListener('load', () => {
+// ============= INIT =============
+window.speechSynthesis.onvoiceschanged=()=>{};
+window.addEventListener('load',()=>{
   synth.getVoices();
   startWaveAnim();
-  // Register service worker so this site installs as a PWA / wraps into an Android app
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch((err) => console.log('SW registration failed:', err));
-  }
+  renderTopicGrid();
+  renderSubtopicGrid();
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+  setTimeout(()=>{
+    const d=loadProfiles();
+    if(d.lastUserId){
+      const p=getProfileById(d.lastUserId);
+      if(p){ applyProfile(p); return; }
+    }
+    showWelcomeFlow();
+  },200);
 });
 </script>
 </body>
