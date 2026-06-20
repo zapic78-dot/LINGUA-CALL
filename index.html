@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="LinguaCall" />
+<meta name="theme-color" content="#6c63ff" />
+<link rel="manifest" href="manifest.json" />
+<title>LinguaCall — AI Language Tutor</title>
+<style>
+  :root{--bg:#0f1020;--panel:#1a1b2e;--panel2:#22243d;--accent:#6c63ff;--accent2:#ff6b9d;--text:#fff;--muted:#a0a3bd;--ok:#4ade80;--err:#f87171;--warn:#fbbf24}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#0f1020,#1a1b2e);color:var(--text);min-height:100vh;padding:14px;padding-bottom:130px}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  h1{font-size:22px}
+  .profile-pill{background:var(--panel);padding:6px 12px;border-radius:20px;font-size:12px;display:flex;gap:8px;align-items:center;cursor:pointer}
+  .profile-pill .xp{color:var(--accent);font-weight:600}
+  .profile-pill .streak{color:var(--warn)}
+  .status{color:var(--muted);font-size:13px;margin-bottom:14px}
+  .status.live{color:var(--ok)}
+  .panel{background:var(--panel);border-radius:16px;padding:12px 14px;margin-bottom:10px}
+  .panel.collapsible .panel-head{display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}
+  .panel.collapsible.closed .panel-body{display:none}
+  .panel.collapsible .arrow{transition:.2s;color:var(--muted)}
+  .panel.collapsible.closed .arrow{transform:rotate(-90deg)}
+  .label{font-size:11px;text-transform:uppercase;color:var(--muted);letter-spacing:1px;margin-bottom:8px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{background:#2a2b45;border:none;color:var(--text);padding:7px 11px;border-radius:18px;font-size:12px;cursor:pointer;transition:.15s}
+  .chip.active{background:var(--accent)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+  .row select{background:#2a2b45;color:#fff;border:none;padding:8px 10px;border-radius:8px;font-size:13px;width:100%}
+  .stats{display:flex;justify-content:space-around;text-align:center;padding:8px 0}
+  .stat-val{font-size:20px;font-weight:600}
+  .stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .avatar-wrap{text-align:center}
+  .avatar{width:84px;height:84px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:38px;margin:8px auto;transition:.2s}
+  .avatar.speaking{transform:scale(1.1);box-shadow:0 0 30px var(--accent)}
+  .avatar.listening{box-shadow:0 0 30px var(--ok)}
+  .nova-name{font-weight:600}
+  .nova-sub{color:var(--muted);font-size:12px;margin-bottom:6px}
+  .transcript{min-height:130px;max-height:260px;overflow-y:auto;padding:4px 2px}
+  .msg{margin-bottom:8px;padding:9px 12px;border-radius:12px;font-size:14px;line-height:1.4}
+  .msg.nova{background:#2a2b45}
+  .msg.user{background:var(--accent);margin-left:24px}
+  .msg .who{font-size:10px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+  .msg.user .who{color:rgba(255,255,255,.7)}
+  .tip{text-align:center;color:var(--muted);font-size:12px;margin-top:6px}
+  .mcq-card{background:var(--panel2);border-radius:12px;padding:12px;margin:8px 0;border-left:3px solid var(--accent)}
+  .mcq-q{font-weight:600;margin-bottom:6px}
+  .mcq-options{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+  .mcq-options button{background:#2a2b45;border:none;color:#fff;padding:8px;border-radius:6px;text-align:left;cursor:pointer;font-size:13px}
+  .controls{position:fixed;bottom:14px;left:14px;right:14px;display:flex;justify-content:space-around;background:var(--panel);padding:12px;border-radius:50px;box-shadow:0 10px 40px rgba(0,0,0,.5);z-index:10}
+  .btn{width:54px;height:54px;border-radius:50%;border:none;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff}
+  .btn.mic{background:#2a2b45}
+  .btn.mic.on{background:var(--err)}
+  .btn.call{background:var(--accent);width:68px;height:68px;font-size:26px}
+  .btn.call.on{background:var(--err)}
+  .btn.skip{background:#2a2b45}
+  .install-banner{position:fixed;top:0;left:0;right:0;background:var(--accent);color:#fff;padding:10px;text-align:center;font-size:13px;display:none;z-index:20}
+  .install-banner button{background:#fff;color:var(--accent);border:none;padding:5px 12px;border-radius:6px;margin-left:8px;font-weight:600;cursor:pointer}
+  .install-banner .close{background:transparent;color:#fff;margin-left:6px;font-size:18px;padding:0 6px}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:30;padding:20px}
+  .modal.open{display:flex}
+  .modal-content{background:var(--panel);border-radius:16px;padding:20px;max-width:400px;width:100%}
+  .modal-content h3{margin-bottom:12px}
+  .modal-content input{width:100%;background:#2a2b45;border:none;color:#fff;padding:10px;border-radius:8px;font-size:14px;margin-bottom:10px}
+  .modal-content button{background:var(--accent);color:#fff;border:none;padding:10px 16px;border-radius:8px;font-size:14px;cursor:pointer;width:100%}
+</style>
+</head>
+<body>
+
+<div class="install-banner" id="install-banner">
+  📱 Install LinguaCall as an app
+  <button id="btn-install">Install</button>
+  <button class="close" id="btn-install-close">✕</button>
+</div>
+
+<div class="topbar">
+  <h1>🤖 LinguaCall</h1>
+  <div class="profile-pill" id="profile-pill">
+    <span id="p-name">Guest</span>
+    <span class="streak">🔥<span id="p-streak">0</span></span>
+    <span class="xp">⭐<span id="p-xp">0</span></span>
+  </div>
+</div>
+<div class="status" id="status">Ready</div>
+
+<div class="panel collapsible" id="settings-panel">
+  <div class="panel-head" onclick="document.getElementById('settings-panel').classList.toggle('closed')">
+    <div class="label" style="margin:0">⚙️ Settings</div>
+    <span class="arrow">▼</span>
+  </div>
+  <div class="panel-body" style="margin-top:10px">
+    <div class="label">Learning</div>
+    <div class="chips" id="learn-lang">
+      <button class="chip active" data-v="en">🇺🇸 English</button>
+      <button class="chip" data-v="es">🇪🇸 Spanish</button>
+      <button class="chip" data-v="fr">🇫🇷 French</button>
+      <button class="chip" data-v="ja">🇯🇵 Japanese</button>
+      <button class="chip" data-v="ar">🇸🇦 Arabic</button>
+      <button class="chip" data-v="de">🇩🇪 German</button>
+      <button class="chip" data-v="zh">🇨🇳 Chinese</button>
+      <button class="chip" data-v="pt">🇧🇷 Portuguese</button>
+    </div>
+
+    <div class="label" style="margin-top:12px">Your native language (for help & translate mode)</div>
+    <div class="chips" id="native-lang">
+      <button class="chip active" data-v="none">None</button>
+      <button class="chip" data-v="ur">اردو Urdu</button>
+      <button class="chip" data-v="ps">پښتو Pashto</button>
+      <button class="chip" data-v="fa">فارسی Persian</button>
+      <button class="chip" data-v="es">Español</button>
+      <button class="chip" data-v="hi">हिन्दी Hindi</button>
+    </div>
+
+    <div class="label" style="margin-top:12px">Level</div>
+    <div class="chips" id="level">
+      <button class="chip active" data-v="beginner">🌱 Beginner</button>
+      <button class="chip" data-v="medium">🔥 Medium</button>
+      <button class="chip" data-v="advanced">⚡ Advanced</button>
+    </div>
+
+    <div class="label" style="margin-top:12px">Mode</div>
+    <div class="chips" id="mode">
+      <button class="chip active" data-v="freetalk">💬 Free Talk</button>
+      <button class="chip" data-v="lesson">📚 Lesson</button>
+      <button class="chip" data-v="interview">🎙️ Interview</button>
+      <button class="chip" data-v="story">📖 Story</button>
+      <button class="chip" data-v="citizenship">🇺🇸 Citizenship</button>
+      <button class="chip" data-v="translate">🌐 Translate</button>
+    </div>
+
+    <div class="label" style="margin-top:12px">Topic</div>
+    <div class="chips" id="topic"></div>
+
+    <div class="row">
+      <div>
+        <div class="label">Nova's voice</div>
+        <select id="voice-select"></select>
+      </div>
+      <div>
+        <div class="label">Speed</div>
+        <select id="rate-select">
+          <option value="0.85">Slower</option>
+          <option value="0.95" selected>Normal</option>
+          <option value="1.1">Faster</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="avatar-wrap">
+    <div class="avatar" id="avatar">🤖</div>
+    <div class="nova-name">Nova</div>
+    <div class="nova-sub">Your AI Language Companion</div>
+  </div>
+  <div class="stats">
+    <div><div class="stat-val" id="s-words">0</div><div class="stat-lbl">Words</div></div>
+    <div><div class="stat-val" id="s-turns">0</div><div class="stat-lbl">Turns</div></div>
+    <div><div class="stat-val" id="s-time">0:00</div><div class="stat-lbl">Time</div></div>
+  </div>
+  <div class="transcript" id="transcript">
+    <div class="msg nova"><div class="who">Nova</div>Pick your language and level, then tap Call.</div>
+  </div>
+  <div class="tip" id="tip">Tap Call to start.</div>
+</div>
+
+<div class="controls">
+  <button class="btn mic" id="btn-mic">🎤</button>
+  <button class="btn call" id="btn-call">📞</button>
+  <button class="btn skip" id="btn-skip">⏭</button>
+</div>
+
+<div class="modal" id="profile-modal">
+  <div class="modal-content">
+    <h3>Your Profile</h3>
+    <input type="text" id="profile-name-input" placeholder="Your name" maxlength="20" />
+    <button id="save-profile">Save</button>
+  </div>
+</div>
+
+<script>
+const WORKER_URL = "https://weathered-salad-5b40.zapic78.workers.dev";
+const $ = id => document.getElementById(id);
+
+const TOPICS = {
+  freetalk: ["General","Hobbies","Travel","Food","Family","Movies","Music","Sports"],
+  lesson:   ["Greetings","Numbers","Past tense","Future tense","Questions","Conditionals"],
+  interview:["Job interview","Visa interview","College admission","Tell me about yourself"],
+  story:    ["Adventure","Mystery","Romance","Sci-fi","Fairy tale"],
+  citizenship:[],
+  translate:[]
+};
+
+const CITIZENSHIP_Q = [
+  {q:"What is the supreme law of the land?", a:"the Constitution"},
+  {q:"What does the Constitution do?", a:"sets up the government, defines the government, protects basic rights of Americans"},
+  {q:"What are the first three words of the Constitution?", a:"We the People"},
+  {q:"What is an amendment?", a:"a change or addition to the Constitution"},
+  {q:"What do we call the first ten amendments?", a:"the Bill of Rights"},
+  {q:"What is one right or freedom from the First Amendment?", a:"speech, religion, assembly, press, petition"},
+  {q:"How many amendments does the Constitution have?", a:"twenty-seven (27)"},
+  {q:"What did the Declaration of Independence do?", a:"announced our independence from Great Britain"},
+  {q:"What are two rights in the Declaration of Independence?", a:"life, liberty, pursuit of happiness"},
+  {q:"What is freedom of religion?", a:"You can practice any religion, or not practice a religion."},
+  {q:"What is the economic system in the United States?", a:"capitalist economy / market economy"},
+  {q:"What is the rule of law?", a:"Everyone must follow the law. Leaders must obey the law."},
+  {q:"Name one branch of the U.S. government.", a:"Congress, legislative, President, executive, courts, judicial"},
+  {q:"What stops one branch from becoming too powerful?", a:"checks and balances, separation of powers"},
+  {q:"Who is in charge of the executive branch?", a:"the President"},
+  {q:"Who makes federal laws?", a:"Congress, Senate and House of Representatives"},
+  {q:"What are the two parts of the U.S. Congress?", a:"the Senate and House of Representatives"},
+  {q:"How many U.S. Senators are there?", a:"one hundred (100)"},
+  {q:"We elect a U.S. Senator for how many years?", a:"six (6)"},
+  {q:"The House of Representatives has how many voting members?", a:"four hundred thirty-five (435)"},
+  {q:"We elect a U.S. Representative for how many years?", a:"two (2)"},
+  {q:"Who does a U.S. Senator represent?", a:"all people of the state"},
+  {q:"We elect a President for how many years?", a:"four (4)"},
+  {q:"In what month do we vote for President?", a:"November"},
+  {q:"If the President can no longer serve, who becomes President?", a:"the Vice President"},
+  {q:"Who is the Commander in Chief of the military?", a:"the President"},
+  {q:"Who signs bills to become laws?", a:"the President"},
+  {q:"Who vetoes bills?", a:"the President"},
+  {q:"What does the judicial branch do?", a:"reviews laws, explains laws, resolves disputes, decides if a law goes against the Constitution"},
+  {q:"What is the highest court in the United States?", a:"the Supreme Court"}
+];
+
+const state = {
+  learn:"en", native:"none", level:"beginner", mode:"freetalk", topic:"",
+  inCall:false, listening:false, speaking:false,
+  messages:[], words:0, turns:0, startedAt:0,
+  recognition:null, audioCtx:null, micStream:null,
+  vadAnalyser:null, vadRAF:null,
+  voiceURI:"", rate:0.95,
+  profile:{name:"Guest", streak:0, xp:0, lastDay:""},
+  mcqIdx:0, mcqOrder:[]
+};
+
+function loadProfile(){
+  try{
+    const p = JSON.parse(localStorage.getItem("lc_profile")||"null");
+    if(p) state.profile = p;
+  }catch(e){}
+  const today = new Date().toDateString();
+  if(state.profile.lastDay !== today){
+    const yesterday = new Date(Date.now()-86400000).toDateString();
+    if(state.profile.lastDay === yesterday) state.profile.streak++;
+    else state.profile.streak = 1;
+    state.profile.lastDay = today;
+    saveProfile();
+  }
+  renderProfile();
+}
+function saveProfile(){ localStorage.setItem("lc_profile", JSON.stringify(state.profile)); }
+function renderProfile(){
+  $("p-name").textContent = state.profile.name;
+  $("p-streak").textContent = state.profile.streak;
+  $("p-xp").textContent = state.profile.xp;
+}
+function loadSettings(){
+  try{
+    const s = JSON.parse(localStorage.getItem("lc_settings")||"null");
+    if(!s) return;
+    ["learn","native","level","mode","topic","voiceURI","rate"].forEach(k=>{ if(s[k]!==undefined) state[k]=s[k]; });
+    ["learn-lang","native-lang","level","mode"].forEach(group=>{
+      const key = group==="learn-lang"?"learn":group==="native-lang"?"native":group;
+      [...$(group).children].forEach(c=>c.classList.toggle("active", c.dataset.v===state[key]));
+    });
+    if(state.rate) $("rate-select").value = state.rate;
+  }catch(e){}
+}
+function saveSettings(){
+  localStorage.setItem("lc_settings", JSON.stringify({
+    learn:state.learn, native:state.native, level:state.level, mode:state.mode,
+    topic:state.topic, voiceURI:state.voiceURI, rate:state.rate
+  }));
+}
+
+["learn-lang","native-lang","level","mode"].forEach(group=>{
+  $(group).addEventListener("click", e=>{
+    if(!e.target.classList.contains("chip"))return;
+    [...$(group).children].forEach(c=>c.classList.remove("active"));
+    e.target.classList.add("active");
+    const key = group==="learn-lang"?"learn":group==="native-lang"?"native":group;
+    state[key] = e.target.dataset.v;
+    if(group==="learn-lang") populateVoices();
+    if(group==="mode") renderTopics();
+    saveSettings();
+  });
+});
+function renderTopics(){
+  const list = TOPICS[state.mode]||[];
+  const wrap = $("topic");
+  wrap.innerHTML = "";
+  if(!list.length){ wrap.innerHTML='<span style="color:var(--muted);font-size:12px">— no topic needed —</span>'; state.topic=""; return; }
+  if(!list.includes(state.topic)) state.topic = list[0];
+  list.forEach(t=>{
+    const b = document.createElement("button");
+    b.className="chip"+(state.topic===t?" active":"");
+    b.textContent = t;
+    b.onclick = ()=>{
+      [...wrap.children].forEach(c=>c.classList.remove("active"));
+      b.classList.add("active");
+      state.topic = t;
+      saveSettings();
+    };
+    wrap.appendChild(b);
+  });
+}
+
+function populateVoices(){
+  const voices = speechSynthesis.getVoices();
+  const sel = $("voice-select");
+  sel.innerHTML="";
+  const match = voices.filter(v=>v.lang.toLowerCase().startsWith(state.learn));
+  const pool = match.length ? match : voices;
+  pool.forEach(v=>{
+    const o = document.createElement("option");
+    o.value = v.voiceURI;
+    o.textContent = `${v.name} (${v.lang})`;
+    sel.appendChild(o);
+  });
+  if(state.voiceURI && [...sel.options].some(o=>o.value===state.voiceURI)){
+    sel.value = state.voiceURI;
+  } else if(sel.options.length){
+    state.voiceURI = sel.value;
+  }
+}
+$("voice-select").addEventListener("change", e=>{ state.voiceURI = e.target.value; saveSettings(); });
+$("rate-select").addEventListener("change", e=>{ state.rate = parseFloat(e.target.value); saveSettings(); });
+speechSynthesis.onvoiceschanged = populateVoices;
+
+function setStatus(t, live=false){ $("status").textContent=t; $("status").classList.toggle("live",live); }
+function addMsg(who, text){
+  const d=document.createElement("div");
+  d.className="msg "+who;
+  d.innerHTML=`<div class="who">${who==="nova"?"Nova":"You"}</div><span></span>`;
+  d.querySelector("span").textContent=text;
+  $("transcript").appendChild(d);
+  $("transcript").scrollTop=$("transcript").scrollHeight;
+  return d.querySelector("span");
+}
+function addMCQCard(qObj){
+  const d = document.createElement("div");
+  d.className = "mcq-card";
+  d.innerHTML = `<div class="mcq-q">Q${state.mcqIdx+1}: ${qObj.q}</div>
+    <div class="mcq-options"><button class="reveal">👁️ Reveal answer</button></div>`;
+  d.querySelector(".reveal").onclick=()=>{
+    d.querySelector(".reveal").outerHTML = `<div style="background:var(--ok);padding:8px;border-radius:6px;margin-top:4px;font-size:13px">✓ ${qObj.a}</div>`;
+  };
+  $("transcript").appendChild(d);
+  $("transcript").scrollTop=$("transcript").scrollHeight;
+}
+function tip(t){ $("tip").textContent=t; }
+function addXP(n){ state.profile.xp += n; saveProfile(); renderProfile(); }
+
+async function ensureAudio(){
+  if(state.audioCtx) return;
+  state.audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+}
+function pickVoice(){
+  const voices = speechSynthesis.getVoices();
+  return voices.find(v=>v.voiceURI===state.voiceURI) ||
+         voices.find(v=>v.lang.toLowerCase().startsWith(state.learn)) ||
+         voices[0];
+}
+
+function speak(text, langOverride){
+  return new Promise(resolve=>{
+    if(!text){ resolve(); return; }
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    if(langOverride){
+      const v = speechSynthesis.getVoices().find(x=>x.lang.toLowerCase().startsWith(langOverride));
+      if(v) u.voice = v;
+      u.lang = v?.lang || langOverride;
+    } else {
+      const v = pickVoice();
+      if(v) u.voice = v;
+      u.lang = v?.lang || state.learn;
+    }
+    u.rate = state.rate;
+    u.pitch = 1.0;
+    u.volume = 1.0;
+    state.speaking = true;
+    $("avatar").classList.add("speaking");
+    u.onend = u.onerror = ()=>{
+      state.speaking=false;
+      $("avatar").classList.remove("speaking");
+      resolve();
+    };
+    speechSynthesis.speak(u);
+  });
+}
+function stopSpeaking(){
+  speechSynthesis.cancel();
+  state.speaking=false;
+  $("avatar").classList.remove("speaking");
+}
+
+function startVAD(){
+  if(!state.micStream||!state.audioCtx) return;
+  const src = state.audioCtx.createMediaStreamSource(state.micStream);
+  const analyser = state.audioCtx.createAnalyser();
+  analyser.fftSize = 512;
+  src.connect(analyser);
+  state.vadAnalyser = analyser;
+  const data = new Uint8Array(analyser.frequencyBinCount);
+  const loop = ()=>{
+    analyser.getByteFrequencyData(data);
+    let sum=0; for(let i=0;i<data.length;i++) sum+=data[i];
+    const energy = sum/data.length;
+    if(state.speaking && energy > 38){
+      stopSpeaking();
+      tip("Got it — listening...");
+    }
+    state.vadRAF = requestAnimationFrame(loop);
+  };
+  loop();
+}
+function stopVAD(){ if(state.vadRAF) cancelAnimationFrame(state.vadRAF); state.vadRAF=null; }
+
+function buildRecognition(langCode){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ alert("Use Chrome/Edge — speech recognition not supported here."); return null; }
+  const r = new SR();
+  r.continuous = false;
+  r.interimResults = true;
+  r.maxAlternatives = 1;
+  const langMap = {en:"en-US",es:"es-ES",fr:"fr-FR",ja:"ja-JP",ar:"ar-SA",de:"de-DE",zh:"zh-CN",pt:"pt-BR",ur:"ur-PK",ps:"ps-AF",fa:"fa-IR",hi:"hi-IN"};
+  r.lang = langMap[langCode] || "en-US";
+  return r;
+}
+function listenOnce(langCode){
+  return new Promise((resolve,reject)=>{
+    const r = buildRecognition(langCode||state.learn);
+    if(!r) return reject("no-stt");
+    state.recognition = r;
+    state.listening = true;
+    $("avatar").classList.add("listening");
+    setStatus("Listening...",true);
+    let finalText = "";
+    let silenceTimer = null;
+    r.onresult = e=>{
+      let interim = "";
+      for(let i=e.resultIndex;i<e.results.length;i++){
+        const t = e.results[i][0].transcript;
+        if(e.results[i].isFinal) finalText += t;
+        else interim += t;
+      }
+      if(silenceTimer) clearTimeout(silenceTimer);
+      if(finalText || interim){
+        silenceTimer = setTimeout(()=>{ try{ r.stop(); }catch(e){} }, 700);
+      }
+    };
+    r.onerror = ev=>{
+      state.listening=false;
+      $("avatar").classList.remove("listening");
+      reject(ev.error);
+    };
+    r.onend = ()=>{
+      state.listening=false;
+      $("avatar").classList.remove("listening");
+      resolve(finalText.trim());
+    };
+    try{ r.start(); }catch(e){ reject(e); }
+  });
+}
+
+function buildSystemPrompt(){
+  const langName = {en:"English",es:"Spanish",fr:"French",ja:"Japanese",ar:"Arabic",de:"German",zh:"Chinese",pt:"Portuguese"}[state.learn];
+  const nativeName = {ur:"Urdu",ps:"Pashto",fa:"Persian",es:"Spanish",hi:"Hindi"}[state.native];
+  const base = `You are Nova, a warm encouraging tutor. User level: ${state.level}. ` +
+    `Reply in 1-2 SHORT sentences (under 25 words). End with one simple follow-up question. ` +
+    `Never lecture. Never correct harshly.`;
+  switch(state.mode){
+    case "freetalk":
+      return `${base} Have a natural ${langName} conversation about: ${state.topic}. Speak only in ${langName}.`;
+    case "lesson":
+      return `${base} You are teaching ${langName}. Topic: ${state.topic}. Give one tiny example, then ask the user to try.`;
+    case "interview":
+      return `${base} You are the interviewer for: ${state.topic}. Ask one realistic question at a time in ${langName}.`;
+    case "story":
+      return `${base} Build a ${state.topic} story together in ${langName}, one sentence at a time. After your sentence, ask "what happens next?"`;
+    case "citizenship":
+      return `You are Nova, a US Citizenship interview coach. Speak ONLY in English. Reply in 1-2 sentences. Tell the user if their answer is right or wrong and what the correct answer is.`;
+    case "translate":
+      return `You are Nova, a friendly translator. The user speaks ${nativeName||"another language"}. ` +
+             `Step 1: Translate their words to clear English. ` +
+             `Step 2: Teach them how to say it in English with simple pronunciation. ` +
+             `Keep response under 40 words. Speak only in English.`;
+  }
+  return base;
+}
+
+async function streamReply(){
+  const res = await fetch(WORKER_URL,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      system: buildSystemPrompt(),
+      messages: state.messages.slice(-10),
+      maxTokens: state.mode==="translate"?180:120,
+      stream:true
+    })
+  });
+  if(!res.ok || !res.body){
+    const fb = "Sorry, server error. Try again?";
+    addMsg("nova", fb); await speak(fb); return;
+  }
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  const span = addMsg("nova","");
+  let full="", sentenceBuf="", firstSpoken=false;
+  const ttsLang = (state.mode==="translate" || state.mode==="citizenship") ? "en" : null;
+  while(true){
+    const {value, done} = await reader.read();
+    if(done) break;
+    const chunk = decoder.decode(value,{stream:true}).replace(/^data:\s?/gm,"").replace(/\[DONE\]/g,"");
+    full += chunk; sentenceBuf += chunk;
+    span.textContent = full;
+    $("transcript").scrollTop=$("transcript").scrollHeight;
+    if(!firstSpoken){
+      const m = sentenceBuf.match(/^(.+?[.!?؟。!？])\s/);
+      if(m){
+        firstSpoken=true;
+        const first=m[1];
+        sentenceBuf=sentenceBuf.slice(m[0].length);
+        speak(first, ttsLang);
+      }
+    }
+  }
+  const tail = (firstSpoken?sentenceBuf:full).trim();
+  if(tail) await speak(tail, ttsLang);
+  state.messages.push({role:"assistant", content:full});
+  state.turns++;
+  $("s-turns").textContent = state.turns;
+  addXP(2);
+}
+
+async function startCall(){
+  await ensureAudio();
+  if(state.audioCtx.state==="suspended") await state.audioCtx.resume();
+  try{
+    state.micStream = await navigator.mediaDevices.getUserMedia({
+      audio:{echoCancellation:true, noiseSuppression:true, autoGainControl:true, sampleRate:48000, channelCount:1}
+    });
+  }catch(e){ alert("Mic permission required."); return; }
+
+  state.inCall=true; state.startedAt=Date.now();
+  state.messages = []; state.words=0; state.turns=0;
+  $("s-words").textContent=0; $("s-turns").textContent=0;
+  $("btn-call").classList.add("on"); $("btn-call").textContent="✕";
+  startVAD();
+
+  if(state.mode==="citizenship"){
+    state.mcqOrder = [...Array(CITIZENSHIP_Q.length).keys()].sort(()=>Math.random()-0.5);
+    state.mcqIdx = 0;
+    const intro = "Let's practice your US Citizenship interview. I'll ask, you answer.";
+    addMsg("nova", intro);
+    await speak(intro,"en");
+    await citizenshipLoop();
+    return;
+  }
+
+  if(state.mode==="translate" && state.native==="none"){
+    const msg="Please pick your native language in Settings first.";
+    addMsg("nova",msg); await speak(msg,"en"); endCall(); return;
+  }
+
+  const greetings = {
+    en:"Hi! I'm Nova. What's on your mind?",
+    es:"¡Hola! Soy Nova. ¿De qué quieres hablar?",
+    fr:"Salut! Je suis Nova. De quoi veux-tu parler?",
+    ja:"こんにちは!ノヴァです。何を話したい?",
+    ar:"مرحبا! أنا نوفا. عن ماذا تريد التحدث؟",
+    de:"Hi! Ich bin Nova. Worüber möchtest du sprechen?",
+    zh:"你好!我是Nova。今天想聊什么?",
+    pt:"Oi! Eu sou Nova. Sobre o que quer falar?"
+  };
+  let greeting = greetings[state.learn]||greetings.en;
+  let greetLang = null;
+  if(state.mode==="translate"){
+    greeting = "Hi! Speak in your language — I'll translate to English and teach you.";
+    greetLang = "en";
+  }
+  addMsg("nova", greeting);
+  await speak(greeting, greetLang);
+
+  while(state.inCall){
+    try{
+      tip("Speak now");
+      const sttLang = state.mode==="translate" ? state.native : state.learn;
+      const text = await listenOnce(sttLang);
+      if(!state.inCall) break;
+      if(!text){ tip("Didn't catch that — try again"); continue; }
+      addMsg("user", text);
+      state.messages.push({role:"user", content:text});
+      state.words += text.split(/\s+/).filter(Boolean).length;
+      $("s-words").textContent = state.words;
+      setStatus("Thinking...",true);
+      await streamReply();
+      setStatus("In call",true);
+    }catch(err){
+      if(err==="no-speech"||err==="aborted") continue;
+      console.error(err);
+      tip("Error: "+err);
+      await new Promise(r=>setTimeout(r,500));
+    }
+  }
+}
+
+async function citizenshipLoop(){
+  while(state.inCall && state.mcqIdx < CITIZENSHIP_Q.length){
+    const q = CITIZENSHIP_Q[state.mcqOrder[state.mcqIdx]];
+    addMCQCard(q);
+    await speak(q.q, "en");
+    if(!state.inCall) return;
+    tip("Answer now");
+    try{
+      const ans = await listenOnce("en");
+      if(!state.inCall) return;
+      if(!ans){ tip("Didn't catch that — moving on"); state.mcqIdx++; continue; }
+      addMsg("user", ans);
+      state.messages.push({role:"user", content:`Question: "${q.q}". Correct answer: "${q.a}". My answer: "${ans}". Was I right? One sentence feedback.`});
+      await streamReply();
+      addXP(5);
+      state.mcqIdx++;
+    }catch(e){ state.mcqIdx++; }
+  }
+  if(state.inCall){
+    const done="Great job! You finished this practice round.";
+    addMsg("nova",done); await speak(done,"en");
+    endCall();
+  }
+}
+
+function endCall(){
+  state.inCall=false;
+  try{ state.recognition && state.recognition.abort(); }catch(e){}
+  stopSpeaking(); stopVAD();
+  if(state.micStream){ state.micStream.getTracks().forEach(t=>t.stop()); state.micStream=null; }
+  $("btn-call").classList.remove("on"); $("btn-call").textContent="📞";
+  setStatus("Call ended");
+  tip("Tap Call to start.");
+}
+
+$("btn-call").addEventListener("click", ()=>{ if(state.inCall) endCall(); else startCall(); });
+$("btn-mic").addEventListener("click", ()=>{
+  if(!state.micStream) return;
+  const t = state.micStream.getAudioTracks()[0];
+  t.enabled = !t.enabled;
+  $("btn-mic").classList.toggle("on", !t.enabled);
+  $("btn-mic").textContent = t.enabled ? "🎤" : "🔇";
+});
+$("btn-skip").addEventListener("click", ()=>{ stopSpeaking(); });
+
+$("profile-pill").addEventListener("click", ()=>{
+  $("profile-name-input").value = state.profile.name==="Guest"?"":state.profile.name;
+  $("profile-modal").classList.add("open");
+});
+$("save-profile").addEventListener("click", ()=>{
+  const v = $("profile-name-input").value.trim();
+  if(v){ state.profile.name = v; saveProfile(); renderProfile(); }
+  $("profile-modal").classList.remove("open");
+});
+$("profile-modal").addEventListener("click", e=>{ if(e.target.id==="profile-modal") $("profile-modal").classList.remove("open"); });
+
+setInterval(()=>{
+  if(!state.inCall) return;
+  const s = Math.floor((Date.now()-state.startedAt)/1000);
+  $("s-time").textContent = Math.floor(s/60)+":"+String(s%60).padStart(2,"0");
+},500);
+
+let deferredInstall = null;
+window.addEventListener("beforeinstallprompt", e=>{
+  e.preventDefault();
+  deferredInstall = e;
+  if(!localStorage.getItem("lc_install_dismissed")) $("install-banner").style.display="block";
+});
+$("btn-install").addEventListener("click", async ()=>{
+  if(!deferredInstall) return;
+  deferredInstall.prompt();
+  await deferredInstall.userChoice;
+  $("install-banner").style.display="none";
+});
+$("btn-install-close").addEventListener("click", ()=>{
+  $("install-banner").style.display="none";
+  localStorage.setItem("lc_install_dismissed","1");
+});
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=> navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+
+loadProfile();
+loadSettings();
+populateVoices();
+renderTopics();
+</script>
+</body>
+</html>
