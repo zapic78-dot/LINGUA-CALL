@@ -16,6 +16,7 @@
     <button class="ico" id="changeBtn" title="Switch personality">⇆</button>
   </header>
 
+  <!-- Personality picker -->
   <main class="page" id="pickerPage">
     <h2 style="margin:0 0 6px;color:var(--blue-900);font-size:22px">Pick your companion</h2>
     <p class="muted" style="margin-bottom:14px">Each one talks a little differently.</p>
@@ -23,21 +24,36 @@
     <button class="btn" id="startBtn" disabled>Start chatting</button>
   </main>
 
+  <!-- Chat view -->
   <main class="chat-wrap" id="chatPage" style="display:none">
-    <div class="chat-messages" id="messages"></div>
+    <div class="chat-messages" id="messages">
+      <button class="btn callstart" id="callBtn">📞 Start voice call — tap once, then talk</button>
+    </div>
     <form class="chat-input" id="chatForm">
       <button type="button" id="micBtn" class="mic" title="Voice input">🎤</button>
-      <input id="msgInput" placeholder="Type a message…" autocomplete="off" />
+      <input id="msgInput" placeholder="Or type a message…" autocomplete="off" />
       <button type="submit" title="Send">➤</button>
     </form>
   </main>
+
+  <!-- Voice call overlay -->
+  <div id="callOverlay" style="display:none">
+    <div class="call-card">
+      <div class="call-avi" id="callAvi">💖</div>
+      <h2 id="callName">Voice call</h2>
+      <div class="call-orb" id="callOrb"><div></div><div></div><div></div></div>
+      <p class="call-status" id="callStatus">Connecting…</p>
+      <p class="call-tip muted" id="callTip">Speak naturally. I'll reply when you pause.</p>
+      <button class="btn hangup" id="hangupBtn">📞 End call</button>
+    </div>
+  </div>
 
   <nav class="tabbar" id="tabbar"></nav>
 </div>
 
 <script type="module">
   import {
-    $, $$, requireProfile, toast, PERSONALITIES, aiChat, speak, createRecognizer,
+    $, $$, requireProfile, toast, PERSONALITIES, aiChat,
     getChatHistory, saveChatHistory, logDailyGoal, bottomNav
   } from "./app.js";
 
@@ -47,6 +63,7 @@
   let personality = localStorage.getItem("persona") || null;
   let history = [];
 
+  /* personality picker */
   const personasEl = $("#personas");
   Object.entries(PERSONALITIES).forEach(([key,p])=>{
     const div = document.createElement("div");
@@ -61,9 +78,8 @@
     personasEl.appendChild(div);
   });
   if(personality) $("#startBtn").disabled = false;
-
   $("#startBtn").onclick = startChat;
-  $("#changeBtn").onclick = ()=>{ $("#chatPage").style.display="none"; $("#pickerPage").style.display="block"; };
+  $("#changeBtn").onclick = ()=>{ endCall(); $("#chatPage").style.display="none"; $("#pickerPage").style.display="block"; };
   if(personality) startChat();
 
   function startChat(){
@@ -72,26 +88,25 @@
     $("#personaTitle").textContent = p.emoji+" "+p.name;
     $("#pickerPage").style.display = "none";
     $("#chatPage").style.display = "flex";
-
     history = getChatHistory(personality);
-    const msgs = $("#messages"); msgs.innerHTML = "";
+    const msgs = $("#messages");
+    // keep the call button at top
+    msgs.querySelectorAll(".msg,.typing").forEach(x=>x.remove());
     history.forEach(m=>renderMsg(m.role,m.content));
-
     if(history.length===0){
       const opener = openerFor(personality);
       renderMsg("assistant",opener);
       history.push({role:"assistant",content:opener});
       saveChatHistory(personality,history);
-      speak(opener);
     }
   }
 
   function openerFor(key){
     switch(key){
-      case "friendly": return "Hey! I'm Lia 💖 How was your day so far?";
-      case "teacher": return "Hello, I'm Mr. Hayes. Tell me one thing you did today and I'll help you say it better.";
-      case "citizenship": return "Welcome! Let's prepare for your citizenship interview. Ready for your first question?";
-      case "business": return "Hi, I'm your business mentor. What workplace situation would you like to practice today?";
+      case "friendly": return "Hey! I'm Lia 💖 Tap the call button — let's just talk.";
+      case "teacher": return "Hello, I'm Mr. Hayes. Tap the call button and tell me about your day.";
+      case "citizenship": return "Welcome! Tap the call button and I'll quiz you on civics questions.";
+      case "business": return "Hi, I'm your business mentor. Tap call and let's practice.";
     }
     return "Hello!";
   }
@@ -117,15 +132,16 @@
   }
   function hideTyping(){ document.getElementById("typing")?.remove(); }
 
+  /* ---------- TEXT chat ---------- */
   $("#chatForm").addEventListener("submit", async (e)=>{
     e.preventDefault();
     const text = $("#msgInput").value.trim();
     if(!text) return;
     $("#msgInput").value = "";
-    await send(text);
+    await sendText(text);
   });
 
-  async function send(text){
+  async function sendText(text){
     renderMsg("user",text);
     history.push({role:"user",content:text});
     logDailyGoal("chat");
@@ -137,25 +153,138 @@
       renderMsg("assistant",reply);
       history.push({role:"assistant",content:reply});
       saveChatHistory(personality,history);
-      speak(reply.replace(/Correction:.*/is,""));
     }catch(err){
       hideTyping();
-      renderMsg("assistant","Sorry, I'm having trouble connecting. The AI endpoint isn't set up yet — finish the Cloudflare Worker step.");
-      console.error(err);
+      renderMsg("assistant","Sorry, AI not connected.");
     }
   }
 
-  let rec=null,recording=false;
+  /* single mic-press fallback (one-shot dictation into text box) */
   $("#micBtn").addEventListener("click",()=>{
-    if(!rec){
-      rec = createRecognizer((text)=>{
-        $("#micBtn").classList.remove("recording"); recording=false; send(text);
-      }, ()=>{ $("#micBtn").classList.remove("recording"); recording=false; });
-      if(!rec){ toast("Voice not supported on this browser"); return; }
-    }
-    if(recording){ rec.stop(); return; }
-    try{ rec.start(); recording=true; $("#micBtn").classList.add("recording"); }catch(e){ toast("Mic in use"); }
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(!SR){ toast("Voice not supported"); return; }
+    const r = new SR();
+    r.lang="en-US"; r.continuous=false; r.interimResults=false;
+    r.onresult=(e)=>{ $("#msgInput").value = e.results[0][0].transcript; };
+    try{ r.start(); $("#micBtn").classList.add("recording"); r.onend=()=>$("#micBtn").classList.remove("recording"); }catch(e){}
   });
+
+  /* ============ VOICE CALL MODE ============ */
+  let callOn = false;
+  let callRec = null;
+  let gotResult = false;
+  let restartTimer = null;
+
+  $("#callBtn").addEventListener("click", startCall);
+  $("#hangupBtn").addEventListener("click", endCall);
+
+  function startCall(){
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(!SR){ toast("Voice not supported on this browser"); return; }
+    callOn = true;
+    const p = PERSONALITIES[personality];
+    $("#callAvi").textContent = p.emoji;
+    $("#callName").textContent = p.name;
+    $("#callOverlay").style.display = "flex";
+
+    // iOS Safari: unlock speech synthesis with a silent utterance triggered by user tap
+    try {
+      const unlock = new SpeechSynthesisUtterance(" ");
+      unlock.volume = 0;
+      speechSynthesis.speak(unlock);
+    } catch(e){}
+
+    // Greet first
+    const greet = history.length > 0
+      ? "I'm listening — what's on your mind?"
+      : openerFor(personality);
+    setStatus("🔊 Speaking…");
+    setOrb("speak");
+    speakThenListen(greet);
+  }
+
+  function endCall(){
+    callOn = false;
+    clearTimeout(restartTimer);
+    try{ callRec && callRec.abort && callRec.abort(); }catch(e){}
+    try{ speechSynthesis.cancel(); }catch(e){}
+    $("#callOverlay").style.display = "none";
+  }
+
+  function setStatus(s){ $("#callStatus").textContent = s; }
+  function setOrb(mode){
+    const o = $("#callOrb");
+    o.className = "call-orb " + mode; // "listen" | "think" | "speak"
+  }
+
+  function listenLoop(){
+    if(!callOn) return;
+    setStatus("🎤 Listening… (speak now)");
+    setOrb("listen");
+    gotResult = false;
+
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    callRec = new SR();
+    callRec.lang = "en-US";
+    callRec.continuous = false;
+    callRec.interimResults = false;
+
+    callRec.onresult = (e) => {
+      gotResult = true;
+      const text = e.results[0][0].transcript.trim();
+      if(text) handleUserSpeech(text);
+    };
+    callRec.onerror = (e) => {
+      if(e.error === "no-speech" || e.error === "aborted") return;
+      console.log("rec error:", e.error);
+    };
+    callRec.onend = () => {
+      if(!gotResult && callOn){
+        restartTimer = setTimeout(()=>{ if(callOn && !speechSynthesis.speaking) listenLoop(); }, 400);
+      }
+    };
+    try { callRec.start(); } catch(e){ console.log("start error:",e); }
+  }
+
+  async function handleUserSpeech(text){
+    if(!callOn) return;
+    setStatus("💭 Thinking…");
+    setOrb("think");
+    renderMsg("user", text);
+    history.push({role:"user", content:text});
+    logDailyGoal("chat");
+    saveChatHistory(personality, history);
+
+    try {
+      const reply = await aiChat(history.slice(-12), personality);
+      if(!callOn) return;
+      renderMsg("assistant", reply);
+      history.push({role:"assistant", content:reply});
+      saveChatHistory(personality, history);
+      setStatus("🔊 Speaking…");
+      setOrb("speak");
+      speakThenListen(reply.replace(/Correction:.*/is, ""));
+    } catch(e){
+      setStatus("⚠️ Connection error — retrying");
+      setOrb("listen");
+      setTimeout(()=>{ if(callOn) listenLoop(); }, 1500);
+    }
+  }
+
+  function speakThenListen(text){
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-US"; u.rate = 0.95; u.pitch = 1.05;
+    const voices = speechSynthesis.getVoices();
+    const female = voices.find(v=>/female|samantha|google.*us|zira/i.test(v.name) && v.lang.startsWith("en"));
+    if(female) u.voice = female;
+    u.onend = () => { if(callOn) listenLoop(); };
+    u.onerror = () => { if(callOn) listenLoop(); };
+    speechSynthesis.speak(u);
+    // Fallback: if onend never fires (Safari quirk), force restart after estimated duration
+    const estMs = Math.min(text.length * 70, 15000) + 800;
+    setTimeout(()=>{ if(callOn && !speechSynthesis.speaking && callRec && !gotResult){ listenLoop(); } }, estMs);
+  }
 </script>
 </body>
 </html>
