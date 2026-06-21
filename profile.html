@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <meta name="theme-color" content="#2563eb" />
-<title>Profile — Lingua Companion AI</title>
+<title>Profile — Lingua</title>
 <link rel="manifest" href="manifest.json" />
 <link rel="stylesheet" href="style.css" />
 </head>
@@ -18,9 +18,9 @@
 
   <main class="page">
     <div class="card" style="text-align:center">
-      <div class="brand-mark" style="width:64px;height:64px;font-size:28px;margin:0 auto 10px"></div>
+      <div class="brand-mark" id="avi" style="width:64px;height:64px;font-size:28px;margin:0 auto 10px"></div>
       <h3 id="pname" style="margin:0">—</h3>
-      <p class="muted" id="pemail">—</p>
+      <p class="muted" id="psub">Member since today</p>
     </div>
 
     <div class="card">
@@ -32,49 +32,55 @@
     </div>
 
     <div class="card">
-      <h3>English level</h3>
-      <p class="muted">Pick the level that matches your comfort. Lessons adapt.</p>
-      <select id="levelSel" class="field" style="width:100%;padding:14px;border:1.5px solid var(--gray-300);border-radius:12px;font-size:16px;margin-top:8px">
-        <option>Beginner</option>
-        <option>Intermediate</option>
-        <option>Advanced</option>
-      </select>
-      <button class="btn" id="saveLevel" style="margin-top:10px">Save</button>
+      <h3>Settings</h3>
+      <div class="field" style="margin-top:8px">
+        <label>Your name</label>
+        <input id="nameInput" type="text" />
+      </div>
+      <div class="field">
+        <label>English level</label>
+        <select id="levelSel">
+          <option>Beginner</option><option>Intermediate</option><option>Advanced</option>
+        </select>
+      </div>
+      <button class="btn" id="saveBtn">Save</button>
     </div>
 
-    <button class="btn danger" id="logoutBtn">Log out</button>
+    <button class="btn danger" id="resetBtn">Reset everything</button>
   </main>
 
   <nav class="tabbar" id="tabbar"></nav>
 </div>
 
 <script type="module">
-  import { auth, signOut, doc, updateDoc } from "./firebase.js";
-  import { db } from "./firebase.js";
-  import { $, requireAuth, loadProfile, toast, bottomNav } from "./app.js";
-
+  import { $, requireProfile, saveProfile, getProfile, toast, bottomNav } from "./app.js";
   document.getElementById("tabbar").outerHTML = bottomNav("profile");
-  const user = await requireAuth();
-  const profile = await loadProfile(user.uid) || {};
 
-  $(".brand-mark").textContent = (profile.name||"U")[0].toUpperCase();
-  $("#pname").textContent = profile.name || user.displayName || "User";
-  $("#pemail").textContent = profile.email || user.email;
-  $("#streak").textContent = (profile.streak||0)+" days";
-  $("#level").textContent = profile.englishLevel || "Beginner";
-  $("#cscore").textContent = (profile.citizenshipScore||0)+"%";
-  $("#totalq").textContent = profile.totalQuizzes||0;
-  $("#levelSel").value = profile.englishLevel || "Beginner";
+  const p = requireProfile(); if(!p) throw 0;
+  $("#avi").textContent = (p.name||"U")[0].toUpperCase();
+  $("#pname").textContent = p.name;
+  $("#streak").textContent = (p.streak||0)+" days";
+  $("#level").textContent = p.englishLevel || "Beginner";
+  $("#cscore").textContent = (p.citizenshipScore||0)+"%";
+  $("#totalq").textContent = p.totalQuizzes||0;
+  $("#nameInput").value = p.name;
+  $("#levelSel").value = p.englishLevel || "Beginner";
 
-  $("#saveLevel").onclick = async ()=>{
-    await updateDoc(doc(db,"users",user.uid),{ englishLevel: $("#levelSel").value });
+  $("#saveBtn").onclick = ()=>{
+    const name = $("#nameInput").value.trim();
+    if(!name) return toast("Name required");
+    saveProfile({ name, englishLevel: $("#levelSel").value });
     toast("Saved");
+    $("#pname").textContent = name;
     $("#level").textContent = $("#levelSel").value;
+    $("#avi").textContent = name[0].toUpperCase();
   };
 
-  $("#logoutBtn").onclick = async ()=>{
-    await signOut(auth);
-    location.href = "index.html";
+  $("#resetBtn").onclick = ()=>{
+    if(confirm("Erase all progress and start over?")){
+      localStorage.clear();
+      location.href = "index.html";
+    }
   };
 </script>
 </body>

@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <meta name="theme-color" content="#2563eb" />
-<title>Chat — Lingua Companion AI</title>
+<title>Chat — Lingua</title>
 <link rel="manifest" href="manifest.json" />
 <link rel="stylesheet" href="style.css" />
 </head>
@@ -16,7 +16,6 @@
     <button class="ico" id="changeBtn" title="Switch personality">⇆</button>
   </header>
 
-  <!-- Personality picker -->
   <main class="page" id="pickerPage">
     <h2 style="margin:0 0 6px;color:var(--blue-900);font-size:22px">Pick your companion</h2>
     <p class="muted" style="margin-bottom:14px">Each one talks a little differently.</p>
@@ -24,7 +23,6 @@
     <button class="btn" id="startBtn" disabled>Start chatting</button>
   </main>
 
-  <!-- Chat view -->
   <main class="chat-wrap" id="chatPage" style="display:none">
     <div class="chat-messages" id="messages"></div>
     <form class="chat-input" id="chatForm">
@@ -39,13 +37,13 @@
 
 <script type="module">
   import {
-    $, $$, requireAuth, toast, PERSONALITIES, aiChat, speak, createRecognizer,
-    saveChatMessage, loadRecentChats, logDailyGoal, bottomNav
+    $, $$, requireProfile, toast, PERSONALITIES, aiChat, speak, createRecognizer,
+    getChatHistory, saveChatHistory, logDailyGoal, bottomNav
   } from "./app.js";
 
   document.getElementById("tabbar").outerHTML = bottomNav("chat");
+  requireProfile();
 
-  const user = await requireAuth();
   let personality = localStorage.getItem("persona") || null;
   let history = [];
 
@@ -53,8 +51,7 @@
   Object.entries(PERSONALITIES).forEach(([key,p])=>{
     const div = document.createElement("div");
     div.className = "persona"+(key===personality?" active":"");
-    div.innerHTML = `<div class="avi">${p.emoji}</div>
-      <div><h4>${p.name}</h4><p>${p.desc}</p></div>`;
+    div.innerHTML = `<div class="avi">${p.emoji}</div><div><h4>${p.name}</h4><p>${p.desc}</p></div>`;
     div.onclick = ()=>{
       $$(".persona").forEach(x=>x.classList.remove("active"));
       div.classList.add("active");
@@ -67,28 +64,24 @@
 
   $("#startBtn").onclick = startChat;
   $("#changeBtn").onclick = ()=>{ $("#chatPage").style.display="none"; $("#pickerPage").style.display="block"; };
-
-  // If a personality is already chosen, auto-start
   if(personality) startChat();
 
-  async function startChat(){
+  function startChat(){
     localStorage.setItem("persona", personality);
     const p = PERSONALITIES[personality];
     $("#personaTitle").textContent = p.emoji+" "+p.name;
     $("#pickerPage").style.display = "none";
     $("#chatPage").style.display = "flex";
 
-    // Load history
-    const past = await loadRecentChats(user.uid, 20);
-    const msgs = $("#messages");
-    msgs.innerHTML = "";
-    past.filter(m=>m.personality===personality).forEach(m=>renderMsg(m.role,m.content));
-    history = past.filter(m=>m.personality===personality).map(m=>({role:m.role,content:m.content}));
+    history = getChatHistory(personality);
+    const msgs = $("#messages"); msgs.innerHTML = "";
+    history.forEach(m=>renderMsg(m.role,m.content));
 
     if(history.length===0){
       const opener = openerFor(personality);
       renderMsg("assistant",opener);
       history.push({role:"assistant",content:opener});
+      saveChatHistory(personality,history);
       speak(opener);
     }
   }
@@ -107,21 +100,17 @@
     const msgs = $("#messages");
     const div = document.createElement("div");
     div.className = "msg "+(role==="user"?"user":"ai");
-    // Highlight "Correction:" sections for teacher
     if(role!=="user" && content.includes("Correction:")){
       const [main, ...rest] = content.split(/Correction:/i);
-      div.innerHTML = `${escape(main).trim()}<div class="correction"><strong>Correction:</strong>${escape(rest.join("Correction:"))}</div>`;
-    } else {
-      div.textContent = content;
-    }
+      div.innerHTML = `${esc(main).trim()}<div class="correction"><strong>Correction:</strong>${esc(rest.join("Correction:"))}</div>`;
+    } else { div.textContent = content; }
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
   }
-  function escape(s){return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+  function esc(s){return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
 
   function showTyping(){
-    const t = document.createElement("div");
-    t.className="typing";t.id="typing";
+    const t = document.createElement("div"); t.className="typing"; t.id="typing";
     t.innerHTML="<span></span><span></span><span></span>";
     $("#messages").appendChild(t);
     $("#messages").scrollTop = $("#messages").scrollHeight;
@@ -139,41 +128,33 @@
   async function send(text){
     renderMsg("user",text);
     history.push({role:"user",content:text});
-    await saveChatMessage(user.uid,"user",text,personality);
-    logDailyGoal(user.uid,"chat");
-
+    logDailyGoal("chat");
+    saveChatHistory(personality,history);
     showTyping();
     try{
       const reply = await aiChat(history.slice(-12), personality);
       hideTyping();
       renderMsg("assistant",reply);
       history.push({role:"assistant",content:reply});
-      await saveChatMessage(user.uid,"assistant",reply,personality);
+      saveChatHistory(personality,history);
       speak(reply.replace(/Correction:.*/is,""));
     }catch(err){
       hideTyping();
-      renderMsg("assistant","Sorry, I'm having trouble connecting. Check your AI endpoint setting.");
+      renderMsg("assistant","Sorry, I'm having trouble connecting. The AI endpoint isn't set up yet — finish the Cloudflare Worker step.");
       console.error(err);
     }
   }
 
-  // Voice input
   let rec=null,recording=false;
   $("#micBtn").addEventListener("click",()=>{
     if(!rec){
       rec = createRecognizer((text)=>{
-        $("#micBtn").classList.remove("recording");
-        recording=false;
-        send(text);
-      }, ()=>{
-        $("#micBtn").classList.remove("recording");
-        recording=false;
-      });
+        $("#micBtn").classList.remove("recording"); recording=false; send(text);
+      }, ()=>{ $("#micBtn").classList.remove("recording"); recording=false; });
       if(!rec){ toast("Voice not supported on this browser"); return; }
     }
     if(recording){ rec.stop(); return; }
-    try{ rec.start(); recording=true; $("#micBtn").classList.add("recording"); }
-    catch(e){ toast("Mic in use"); }
+    try{ rec.start(); recording=true; $("#micBtn").classList.add("recording"); }catch(e){ toast("Mic in use"); }
   });
 </script>
 </body>

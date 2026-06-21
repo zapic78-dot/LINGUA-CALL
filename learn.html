@@ -40,9 +40,9 @@
 </div>
 
 <script type="module">
-  import { $, $$, requireAuth, bottomNav, speak } from "./app.js";
+  import { $, $$, requireProfile, bottomNav, speak } from "./app.js";
   document.getElementById("tabbar").outerHTML = bottomNav("learn");
-  await requireAuth();
+  requireProfile();
 
   const LESSONS = {
     beginner: [

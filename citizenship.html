@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <meta name="theme-color" content="#2563eb" />
-<title>Citizenship — Lingua Companion AI</title>
+<title>Citizenship — Lingua</title>
 <link rel="manifest" href="manifest.json" />
 <link rel="stylesheet" href="style.css" />
 </head>
@@ -25,7 +25,6 @@
       <button data-tab="sim">Test sim</button>
     </div>
 
-    <!-- Flashcards -->
     <section id="tab-flash">
       <div class="muted" style="margin-bottom:8px"><span id="fcCounter">1 / 100</span> · Tap card to flip</div>
       <div class="flashcard" id="fc">
@@ -50,7 +49,6 @@
       <button class="btn ghost" id="speakBtn">🔊 Read aloud</button>
     </section>
 
-    <!-- Quiz -->
     <section id="tab-quiz" style="display:none">
       <div id="quizIntro">
         <div class="card">
@@ -75,7 +73,6 @@
       </div>
     </section>
 
-    <!-- Reading -->
     <section id="tab-read" style="display:none">
       <div class="card">
         <h3>Reading test practice</h3>
@@ -86,11 +83,10 @@
       </div>
     </section>
 
-    <!-- Writing -->
     <section id="tab-write" style="display:none">
       <div class="card">
         <h3>Writing test practice</h3>
-        <p class="muted">Listen, then write what you hear. The app checks for spelling and word order.</p>
+        <p class="muted">Listen, then write what you hear.</p>
         <button class="btn secondary" id="writePlay">🔊 Play sentence</button>
         <div class="field" style="margin-top:14px">
           <label>Your answer</label>
@@ -102,11 +98,10 @@
       </div>
     </section>
 
-    <!-- Test Simulator -->
     <section id="tab-sim" style="display:none">
-      <div class="card">
+      <div class="card" id="simIntroCard">
         <h3>Citizenship test simulator</h3>
-        <p class="muted">Mimics the real interview: 10 civics questions out loud, you answer by voice. Pass with 6/10.</p>
+        <p class="muted">10 civics questions out loud, you answer by voice. Pass with 6/10.</p>
         <button class="btn" id="simStart">Start simulator</button>
       </div>
       <div id="simPlay" style="display:none">
@@ -127,15 +122,14 @@
 
 <script type="module">
   import {
-    $, $$, requireAuth, toast, speak, createRecognizer,
+    $, $$, requireProfile, toast, speak, createRecognizer,
     CIVICS_QUESTIONS, READING_SENTENCES, WRITING_SENTENCES,
     getRandomCivics, makeChoices, saveQuizScore, logDailyGoal, bottomNav
   } from "./app.js";
 
   document.getElementById("tabbar").outerHTML = bottomNav("civics");
-  const user = await requireAuth();
+  requireProfile();
 
-  /* Tabs */
   $$("#tabs button").forEach(b=>{
     b.onclick = ()=>{
       $$("#tabs button").forEach(x=>x.classList.remove("active"));
@@ -146,7 +140,6 @@
     };
   });
 
-  /* Flashcards */
   let order = CIVICS_QUESTIONS.map(q=>q.id);
   let idx = 0;
   function showCard(){
@@ -160,16 +153,12 @@
     $("#fc").classList.remove("flipped");
   }
   $("#fc").onclick = ()=>$("#fc").classList.toggle("flipped");
-  $("#nextBtn").onclick = ()=>{ idx=(idx+1)%order.length; showCard(); logDailyGoal(user.uid,"flashcards"); };
+  $("#nextBtn").onclick = ()=>{ idx=(idx+1)%order.length; showCard(); logDailyGoal("flashcards"); };
   $("#prevBtn").onclick = ()=>{ idx=(idx-1+order.length)%order.length; showCard(); };
   $("#shuffleBtn").onclick = ()=>{ order.sort(()=>Math.random()-.5); idx=0; showCard(); toast("Shuffled"); };
-  $("#speakBtn").onclick = ()=>{
-    const q = CIVICS_QUESTIONS.find(x=>x.id===order[idx]);
-    speak(q.q);
-  };
+  $("#speakBtn").onclick = ()=>{ const q = CIVICS_QUESTIONS.find(x=>x.id===order[idx]); speak(q.q); };
   showCard();
 
-  /* Quiz */
   let quiz = [], qIdx=0, score=0;
   $("#startQuiz").onclick = ()=>{
     quiz = getRandomCivics(10).filter(q=>!q.a[0].startsWith("Answers will vary")&&!q.a[0].startsWith("Check "));
@@ -207,26 +196,24 @@
       wrap.appendChild(b);
     });
   }
-  async function finishQuiz(){
+  function finishQuiz(){
     $("#quizPlay").style.display="none"; $("#quizDone").style.display="block";
     const pct = Math.round(score/quiz.length*100);
     const pass = score>=6;
     $("#qEmoji").textContent = pass?"🎉":"📚";
     $("#qResult").textContent = pass?`You passed! ${score}/${quiz.length}`:`Keep practicing: ${score}/${quiz.length}`;
-    $("#qResultSub").textContent = pct+"% — "+(pass?"You'd pass the real civics test today.":"You need 6/10 to pass the real test. Try again!");
-    await saveQuizScore(user.uid, score, quiz.length);
-    logDailyGoal(user.uid,"quiz");
+    $("#qResultSub").textContent = pct+"% — "+(pass?"You'd pass the real civics test today.":"You need 6/10 to pass. Try again!");
+    saveQuizScore(score, quiz.length);
+    logDailyGoal("quiz");
   }
   $("#quizAgain").onclick = ()=>{ $("#quizDone").style.display="none"; $("#quizIntro").style.display="block"; };
 
-  /* Reading */
   let rIdx = 0;
   function showRead(){ $("#readSentence").textContent = READING_SENTENCES[rIdx]; }
   $("#readSpeak").onclick = ()=>speak(READING_SENTENCES[rIdx]);
   $("#readNext").onclick = ()=>{ rIdx=(rIdx+1)%READING_SENTENCES.length; showRead(); };
   showRead();
 
-  /* Writing */
   let wIdx = 0;
   $("#writePlay").onclick = ()=>speak(WRITING_SENTENCES[wIdx]);
   $("#writeCheck").onclick = ()=>{
@@ -237,20 +224,14 @@
     if(match) r.innerHTML = `<div class="pill green">✓ Correct!</div>`;
     else r.innerHTML = `<div class="pill amber">Almost!</div><div class="muted" style="margin-top:6px">Correct: <strong>${WRITING_SENTENCES[wIdx]}</strong></div>`;
   };
-  $("#writeNext").onclick = ()=>{
-    wIdx=(wIdx+1)%WRITING_SENTENCES.length;
-    $("#writeInput").value=""; $("#writeResult").innerHTML="";
-  };
+  $("#writeNext").onclick = ()=>{ wIdx=(wIdx+1)%WRITING_SENTENCES.length; $("#writeInput").value=""; $("#writeResult").innerHTML=""; };
 
-  /* Simulator */
   let sim=[], sIdx=0, sScore=0, sRec=null;
   $("#simStart").onclick = ()=>{
     sim = getRandomCivics(10).filter(q=>!q.a[0].startsWith("Answers will vary")&&!q.a[0].startsWith("Check "));
     if(sim.length<10) sim = getRandomCivics(10);
     sIdx=0; sScore=0;
-    $("#simStart").parentElement.style.display="none";
-    $("#simDone").style.display="none";
-    $("#simPlay").style.display="block";
+    $("#simIntroCard").style.display="none"; $("#simDone").style.display="none"; $("#simPlay").style.display="block";
     showSim();
   };
   function showSim(){
@@ -277,12 +258,8 @@
     try{ sRec.start(); $("#sHeard").textContent="🎤 Listening…"; }catch(e){}
   };
   $("#sSkip").onclick = nextSim;
-  function nextSim(){
-    sIdx++;
-    if(sIdx<sim.length) showSim();
-    else finishSim();
-  }
-  async function finishSim(){
+  function nextSim(){ sIdx++; if(sIdx<sim.length) showSim(); else finishSim(); }
+  function finishSim(){
     $("#simPlay").style.display="none";
     const pass = sScore>=6;
     $("#simDone").style.display="block";
@@ -292,8 +269,8 @@
       <p class="muted">Score: ${sScore} / ${sim.length}</p>
       <button class="btn" onclick="location.reload()">Try again</button>
     </div>`;
-    await saveQuizScore(user.uid, sScore, sim.length);
-    logDailyGoal(user.uid,"quiz");
+    saveQuizScore(sScore, sim.length);
+    logDailyGoal("quiz");
   }
 </script>
 </body>

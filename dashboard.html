@@ -4,21 +4,18 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <meta name="theme-color" content="#2563eb" />
-<title>Dashboard — Lingua Companion AI</title>
+<title>Dashboard — Lingua</title>
 <link rel="manifest" href="manifest.json" />
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 <div class="app">
   <header class="topbar">
-    <div class="brand">
-      <div class="brand-mark">L</div>
-      <div class="brand-name">Lingua</div>
-    </div>
-    <button class="ico" id="logoutBtn" title="Log out">⎋</button>
+    <div class="brand"><div class="brand-mark">L</div><div class="brand-name">Lingua</div></div>
+    <a href="profile.html" class="ico" title="Profile">👤</a>
   </header>
 
-  <main class="page" id="page">
+  <main class="page">
     <div class="hero">
       <h2 id="greet">Welcome back</h2>
       <p id="subline">Let's practice English today.</p>
@@ -44,35 +41,25 @@
       <a class="tile" href="citizenship.html"><span class="ic">🇺🇸</span><h4>Citizenship</h4><p>Flashcards & quizzes</p></a>
       <a class="tile" href="interview.html"><span class="ic">🎤</span><h4>Mock Interview</h4><p>Practice N-400</p></a>
     </div>
-
-    <div id="adminLink" style="display:none;margin-top:14px">
-      <a class="btn secondary" href="admin.html">Open admin panel</a>
-    </div>
   </main>
 
   <nav class="tabbar" id="tabbar"></nav>
 </div>
 
 <script type="module">
-  import { auth, signOut } from "./firebase.js";
-  import {
-    $, requireAuth, loadProfile, updateStreak, getTodayGoals, bottomNav, toast
-  } from "./app.js";
-
+  import { $, requireProfile, updateStreak, getTodayGoals, bottomNav } from "./app.js";
   document.getElementById("tabbar").outerHTML = bottomNav("home");
 
-  const user = await requireAuth();
-  const profile = await loadProfile(user.uid) || {};
-  const name = (profile.name || user.displayName || "friend").split(" ")[0];
+  const profile = requireProfile(); if(!profile) throw 0;
+  const name = profile.name.split(" ")[0];
   $("#greet").textContent = `Hi ${name} 👋`;
-  $("#subline").textContent = greetingLine();
+  $("#subline").textContent = greet();
 
-  const streak = await updateStreak(user.uid);
-  $("#streak").textContent = streak;
+  $("#streak").textContent = updateStreak();
   $("#level").textContent = profile.englishLevel || "Beginner";
   $("#cscore").textContent = (profile.citizenshipScore||0)+"%";
 
-  const g = await getTodayGoals(user.uid);
+  const g = getTodayGoals();
   $("#goalChat").textContent  = Math.min(g.chat||0,3)+" / 3";
   $("#goalChat").classList.toggle("green",(g.chat||0)>=3);
   $("#goalQuiz").textContent  = Math.min(g.quiz||0,1)+" / 1";
@@ -80,14 +67,7 @@
   $("#goalFlash").textContent = Math.min(g.flashcards||0,5)+" / 5";
   $("#goalFlash").classList.toggle("green",(g.flashcards||0)>=5);
 
-  if(profile.isAdmin) $("#adminLink").style.display="block";
-
-  $("#logoutBtn").onclick = async ()=>{
-    await signOut(auth);
-    location.href = "index.html";
-  };
-
-  function greetingLine(){
+  function greet(){
     const h = new Date().getHours();
     if(h<12) return "Good morning — ready for a quick chat?";
     if(h<18) return "Good afternoon — let's keep the streak going.";
