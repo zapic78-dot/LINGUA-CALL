@@ -226,7 +226,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
     </div>
     <div class="field">
       <label>ElevenLabs Voice ID</label>
-      <input id="elVoice" placeholder="EXAVITQu4vr4xnSDxMaL (Rachel — default)"/>
+      <input id="elVoice" placeholder="Leave empty for default Rachel voice"/>
     </div>
     <div class="field">
       <label>Aria's personality / extra context</label>
@@ -312,7 +312,12 @@ function saveSettings(){
   const v=document.getElementById('elVoice').value.trim();
   const c=document.getElementById('extraCtx').value.trim();
   if(k) ls('aria_elkey',k);
-  if(v) ls('aria_elvoice',v);
+  // Only save voice ID if it looks like a real ID (no spaces, no words like Rachel/default)
+  if(v&&!v.includes(' ')&&!v.toLowerCase().includes('rachel')&&!v.toLowerCase().includes('default')){
+    ls('aria_elvoice',v);
+  } else {
+    localStorage.removeItem('aria_elvoice');
+  }
   if(c) ls('aria_ctx',c);
   closeSettings();
   setStatus('Settings saved ✓');
@@ -485,15 +490,19 @@ async function callClaude(userText){
 // ════════════════════════════════════════════
 async function speak(text){
   const elKey=ls('aria_elkey');
-  const elVoice=ls('aria_elvoice')||'EXAVITQu4vr4xnSDxMaL';
-  if(elKey){
+  let elVoice=ls('aria_elvoice')||'';
+  if(elVoice.trim()===''||elVoice.includes('Rachel')||elVoice.includes('default')){
+    elVoice='EXAVITQu4vr4xnSDxMaL';
+  }
+  if(elKey&&elKey.trim()!==''){
     try{
       setStatus('Aria is speaking...');
-      const r=await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${elVoice}/stream`,{
+      const r=await fetch('https://api.elevenlabs.io/v1/text-to-speech/'+elVoice,{
         method:'POST',
-        headers:{'Content-Type':'application/json','xi-api-key':elKey},
+        headers:{'Content-Type':'application/json','xi-api-key':elKey.trim()},
         body:JSON.stringify({
-          text,model_id:'eleven_turbo_v2',
+          text:text,
+          model_id:'eleven_turbo_v2',
           voice_settings:{stability:0.42,similarity_boost:0.85,style:0.35,use_speaker_boost:true}
         })
       });
@@ -502,11 +511,18 @@ async function speak(text){
         const url=URL.createObjectURL(blob);
         const audio=new Audio(url);
         S.audioPlaying=true;
-        await new Promise((res,rej)=>{audio.onended=res;audio.onerror=rej;audio.play().catch(rej)});
+        await new Promise((res,rej)=>{
+          audio.onended=()=>{res()};
+          audio.onerror=(e)=>{console.warn('Audio play error:',e);res()};
+          audio.play().catch(e=>{console.warn('Play failed:',e);res()});
+        });
         URL.revokeObjectURL(url);
         S.audioPlaying=false;
         setSpeaking(false);
         return;
+      } else {
+        const errData=await r.json().catch(()=>({}));
+        console.warn('ElevenLabs error:',r.status,errData);
       }
     }catch(e){console.warn('ElevenLabs failed:',e)}
   }
