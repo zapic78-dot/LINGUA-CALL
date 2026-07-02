@@ -1,711 +1,1086 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
-<title>Aria</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Aria — English Companion</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{
-  --bg:#0d0d0f;--card:#16161a;--card2:#1e1e24;--border:#2a2a32;
-  --text:#f0eff8;--sub:#8b8a9a;--muted:#4a4a58;
-  --purple:#7c6fcd;--purple2:#a99ef0;--purple-glow:rgba(124,111,205,0.25);
-  --green:#3fcf8e;--green-glow:rgba(63,207,142,0.2);
-  --red:#e05c5c;--amber:#e0a050;
-  --radius:14px;
-}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow-x:hidden}
-
-/* ─── SCREENS ─── */
-.screen{display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1.5rem}
-.screen.active{display:flex}
-
-/* ─── LOGIN ─── */
-#loginScreen{gap:2rem}
-.logo{text-align:center}
-.logo-avatar{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#534AB7,#1D9E75);display:flex;align-items:center;justify-content:center;font-size:40px;margin:0 auto 1rem;box-shadow:0 0 40px var(--purple-glow)}
-.logo h1{font-size:28px;font-weight:600;background:linear-gradient(135deg,var(--purple2),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.logo p{font-size:14px;color:var(--sub);margin-top:6px}
-.login-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.75rem;width:100%;max-width:400px;display:flex;flex-direction:column;gap:1rem}
-.field label{font-size:12px;color:var(--sub);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.05em}
-.field input,.field select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-size:15px;outline:none;font-family:inherit;transition:border-color 0.2s}
-.field input:focus,.field select:focus{border-color:var(--purple)}
-.btn-primary{width:100%;padding:14px;border-radius:10px;border:none;background:linear-gradient(135deg,#534AB7,#1D9E75);color:#fff;font-size:16px;font-weight:500;cursor:pointer;font-family:inherit;transition:opacity 0.15s}
-.btn-primary:hover{opacity:0.9}
-.btn-ghost{width:100%;padding:11px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--sub);font-size:14px;cursor:pointer;font-family:inherit;transition:border-color 0.2s,color 0.2s}
-.btn-ghost:hover{border-color:var(--purple);color:var(--purple2)}
-.err{font-size:13px;color:var(--red);text-align:center;min-height:18px}
-.login-footer{font-size:12px;color:var(--muted);text-align:center}
-
-/* ─── MAIN ─── */
-#mainScreen{gap:0;padding:0;justify-content:flex-start;background:var(--bg)}
-.topbar{width:100%;display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card)}
-.topbar-left{display:flex;flex-direction:column;gap:2px}
-.topbar-left .name{font-size:15px;font-weight:500}
-.topbar-left .hint{font-size:12px;color:var(--sub)}
-.topbar-right{display:flex;gap:6px}
-.icon-btn{background:none;border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--sub);font-size:16px;padding:7px 9px;display:flex;align-items:center;transition:border-color 0.2s,color 0.2s}
-.icon-btn:hover{border-color:var(--purple);color:var(--purple2)}
-
-.main-body{width:100%;max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:1rem;padding:1rem 1rem 6rem}
-
-/* ─── CALL CARD ─── */
-.call-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.75rem;display:flex;flex-direction:column;align-items:center;gap:1.25rem}
-.aria-avatar{position:relative;width:100px;height:100px}
-.aria-face{width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,#534AB7,#1D9E75);display:flex;align-items:center;justify-content:center;font-size:44px;position:relative;z-index:1}
-.ring{position:absolute;inset:-8px;border-radius:50%;border:2px solid var(--purple);opacity:0;pointer-events:none;z-index:0}
-.ring2{position:absolute;inset:-18px;border-radius:50%;border:1.5px solid var(--green);opacity:0;pointer-events:none;z-index:0}
-.speaking .ring{animation:ring1 1.4s ease-in-out infinite}
-.speaking .ring2{animation:ring2 1.4s ease-in-out infinite 0.3s}
-@keyframes ring1{0%,100%{opacity:0;transform:scale(1)}50%{opacity:0.7;transform:scale(1.06)}}
-@keyframes ring2{0%,100%{opacity:0;transform:scale(1)}50%{opacity:0.35;transform:scale(1.1)}}
-.aria-status{text-align:center}
-.aria-name{font-size:18px;font-weight:500;margin-bottom:4px}
-.status-text{font-size:13px;color:var(--sub)}
-.lang-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
-.lang-pill{padding:5px 13px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--sub);font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.15s}
-.lang-pill.active{background:rgba(124,111,205,0.15);border-color:var(--purple);color:var(--purple2);font-weight:500}
-
-/* ─── CALL BUTTON ─── */
-.call-btn-wrap{display:flex;flex-direction:column;align-items:center;gap:10px}
-#callBtn{width:110px;height:110px;border-radius:50%;border:none;background:linear-gradient(135deg,#534AB7,#1D9E75);color:#fff;font-size:42px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 0 var(--purple-glow);transition:transform 0.15s,box-shadow 0.2s;position:relative;overflow:hidden}
-#callBtn:hover{transform:scale(1.04);box-shadow:0 0 30px var(--purple-glow)}
-#callBtn.active{background:linear-gradient(135deg,#8B1A1A,#854f0b);box-shadow:0 0 0 0 rgba(224,92,92,0.3)}
-#callBtn.active:hover{box-shadow:0 0 30px rgba(224,92,92,0.3)}
-#callBtn:disabled{opacity:0.35;cursor:not-allowed;transform:none}
-.call-label{font-size:13px;color:var(--sub)}
-.mic-indicator{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
-.mic-dot{width:7px;height:7px;border-radius:50%;background:var(--muted)}
-.mic-dot.on{background:var(--green);box-shadow:0 0 6px var(--green-glow);animation:blink 1.5s ease-in-out infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0.4}}
-
-/* ─── LEVEL PILLS ─── */
-.level-row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
-.lvl-pill{padding:5px 13px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--sub);font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.15s}
-.lvl-pill.active{background:rgba(63,207,142,0.1);border-color:var(--green);color:var(--green);font-weight:500}
-
-/* ─── TRANSCRIPT ─── */
-.transcript-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;display:flex;flex-direction:column;gap:8px}
-.transcript-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
-.transcript-head span{font-size:12px;color:var(--sub);text-transform:uppercase;letter-spacing:0.05em}
-.messages{min-height:120px;max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
-.msg{padding:10px 13px;border-radius:10px;font-size:14px;line-height:1.55;max-width:88%}
-.msg.aria-msg{background:var(--card2);color:var(--text);align-self:flex-start;border-bottom-left-radius:3px}
-.msg.user-msg{background:rgba(124,111,205,0.15);color:var(--purple2);align-self:flex-end;border-bottom-right-radius:3px;text-align:right}
-.msg.system-msg{font-size:12px;color:var(--muted);text-align:center;align-self:center;padding:4px 10px;background:none}
-#interimText{font-size:13px;color:var(--muted);font-style:italic;text-align:right;min-height:18px;padding:2px 4px}
-
-/* ─── MEMORY CARD ─── */
-.mem-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem}
-.mem-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.mem-head span{font-size:12px;color:var(--sub);text-transform:uppercase;letter-spacing:0.05em}
-.mem-grid{display:flex;flex-direction:column;gap:5px}
-.mem-row{display:flex;gap:8px;font-size:13px}
-.mem-key{color:var(--muted);min-width:90px;font-size:11px;padding-top:1px;text-transform:capitalize}
-.mem-val{color:var(--text);flex:1}
-.mem-empty{font-size:13px;color:var(--muted)}
-
-/* ─── SETTINGS DRAWER ─── */
-.settings-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:100;align-items:flex-end;justify-content:center}
-.settings-overlay.open{display:flex}
-.settings-drawer{background:var(--card);border-radius:var(--radius) var(--radius) 0 0;border:1px solid var(--border);border-bottom:none;padding:1.5rem;width:100%;max-width:520px;display:flex;flex-direction:column;gap:1rem;max-height:85vh;overflow-y:auto}
-.drawer-title{font-size:16px;font-weight:500;margin-bottom:4px}
-.drawer-sub{font-size:13px;color:var(--sub)}
-.save-btn{padding:10px 24px;border-radius:10px;border:none;background:var(--purple);color:#fff;font-size:14px;cursor:pointer;font-family:inherit;align-self:flex-start}
-.save-btn:hover{opacity:0.9}
-.close-btn{background:none;border:none;color:var(--sub);font-size:20px;cursor:pointer;align-self:flex-end;margin-bottom:-8px}
-
-/* ─── SCROLLBAR ─── */
-::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(135deg, #fdf2f8 0%, #ede9fe 50%, #dbeafe 100%);
+    color: #1e293b;
+    overflow: hidden;
+  }
+  body.kid-mode {
+    background: linear-gradient(135deg, #fef3c7 0%, #fce7f3 50%, #dbeafe 100%);
+  }
+  #app { height: 100%; display: flex; flex-direction: column; }
+  .screen {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .screen.active { display: flex; }
+  h1 { font-size: 30px; margin-bottom: 8px; color: #7c3aed; }
+  h2 { font-size: 22px; margin-bottom: 16px; color: #1e293b; }
+  .subtitle { color: #64748b; margin-bottom: 24px; font-size: 15px; }
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 12px;
+    background: white;
+    color: #1e293b;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: transform 0.1s;
+    font-family: inherit;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn.primary { background: linear-gradient(135deg, #a855f7, #7c3aed); color: white; }
+  .btn.secondary { background: white; color: #7c3aed; border: 2px solid #ddd6fe; }
+  .btn.small { padding: 8px 14px; font-size: 14px; width: auto; display: inline-block; margin: 0; }
+  .kid-mode .btn { border-radius: 20px; font-size: 18px; padding: 20px; }
+  .input {
+    width: 100%;
+    padding: 14px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 16px;
+    margin-bottom: 12px;
+    background: white;
+    font-family: inherit;
+  }
+  .input:focus { outline: none; border-color: #a855f7; }
+  .card {
+    background: white;
+    padding: 20px;
+    border-radius: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .card:active { transform: scale(0.98); }
+  .card-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; color: #7c3aed; }
+  .card-desc { font-size: 14px; color: #64748b; }
+  .back-btn {
+    background: none;
+    border: none;
+    color: #7c3aed;
+    font-size: 16px;
+    padding: 8px 0;
+    margin-bottom: 12px;
+    cursor: pointer;
+    align-self: flex-start;
+    font-family: inherit;
+  }
+  .chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
+  .chat-header {
+    padding: 12px 16px;
+    background: white;
+    border-radius: 14px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    gap: 8px;
+  }
+  .chat-msgs {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .msg {
+    max-width: 85%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 15px;
+    line-height: 1.4;
+    word-wrap: break-word;
+  }
+  .msg.user {
+    align-self: flex-end;
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
+    color: white;
+    border-bottom-right-radius: 6px;
+  }
+  .msg.aria {
+    align-self: flex-start;
+    background: white;
+    color: #1e293b;
+    border-bottom-left-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+  .mic-btn {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
+    border: none;
+    color: white;
+    font-size: 32px;
+    align-self: center;
+    margin: 12px auto 0;
+    box-shadow: 0 6px 20px rgba(124,58,237,0.4);
+    cursor: pointer;
+  }
+  .mic-btn.listening {
+    animation: pulse 1.2s infinite;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+  .text-input-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .text-input-row input {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 15px;
+    font-family: inherit;
+  }
+  .text-input-row button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .status-bar {
+    text-align: center;
+    color: #64748b;
+    font-size: 13px;
+    padding: 6px;
+    min-height: 24px;
+  }
+  .settings-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .settings-row label { flex: 1; font-size: 15px; }
+  .settings-row select {
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    font-size: 14px;
+    max-width: 55%;
+    font-family: inherit;
+  }
+  .error { color: #dc2626; font-size: 13px; margin-bottom: 8px; }
+  .success { color: #16a34a; font-size: 13px; margin-bottom: 8px; }
+  .icon-lg { font-size: 40px; margin-bottom: 8px; }
+  .row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .row-2 .card { margin-bottom: 0; text-align: center; }
+  .center-top { margin-top: 32px; text-align: center; }
 </style>
 </head>
 <body>
 
-<!-- ════════ LOGIN ════════ -->
-<div id="loginScreen" class="screen active">
-  <div class="logo">
-    <div class="logo-avatar">👩</div>
-    <h1>Aria</h1>
-    <p>Your real AI companion — press one button, just talk</p>
-  </div>
-  <div class="login-card">
-    <div class="field"><label>Your name</label><input id="lName" placeholder="e.g. Adil" autocomplete="username"/></div>
-    <div class="field"><label>Date of birth</label><input id="lDob" type="date"/></div>
-    <div class="field"><label>Password</label><input id="lPass" type="password" placeholder="Create or enter password" autocomplete="current-password"/></div>
-    <p class="err" id="lErr"></p>
-    <button class="btn-primary" onclick="doLogin()">Start talking to Aria</button>
-    <button class="btn-ghost" onclick="doGuest()">Try as guest</button>
-  </div>
-  <p class="login-footer">Everything stays on your device · No account needed</p>
-</div>
+<div id="app">
 
-<!-- ════════ MAIN ════════ -->
-<div id="mainScreen" class="screen">
-  <div class="topbar">
-    <div class="topbar-left">
-      <span class="name" id="topName">Hi there</span>
-      <span class="hint" id="topHint">Aria is ready</span>
+  <!-- LOGIN / SIGNUP -->
+  <div id="screen-login" class="screen active">
+    <div class="center-top">
+      <div class="icon-lg">🌸</div>
+      <h1>Aria</h1>
+      <p class="subtitle">Your calm English learning companion</p>
     </div>
-    <div class="topbar-right">
-      <button class="icon-btn" title="Settings" onclick="openSettings()"><i class="ti ti-settings"></i></button>
-      <button class="icon-btn" title="Sign out" onclick="signOut()"><i class="ti ti-logout"></i></button>
+    <div id="login-form">
+      <input class="input" id="li-name" placeholder="Your name" autocapitalize="off">
+      <input class="input" id="li-password" placeholder="Password" type="password">
+      <button class="btn primary" onclick="handleLogin()">Log in</button>
+      <button class="btn secondary" onclick="showSignup()">New user? Sign up</button>
+      <div id="login-error" class="error"></div>
+    </div>
+    <div id="signup-form" style="display:none;">
+      <input class="input" id="su-name" placeholder="Choose a name" autocapitalize="off">
+      <input class="input" id="su-dob" placeholder="Date of birth (MM/DD/YYYY)">
+      <input class="input" id="su-password" placeholder="Choose a password" type="password">
+      <input class="input" id="su-password2" placeholder="Confirm password" type="password">
+      <button class="btn primary" onclick="handleSignup()">Create account</button>
+      <button class="btn secondary" onclick="showLogin()">Back to login</button>
+      <div id="signup-error" class="error"></div>
     </div>
   </div>
 
-  <div class="main-body">
-    <!-- Call card -->
-    <div class="call-card">
-      <div class="aria-avatar" id="ariaAvatar">
-        <div class="aria-face">👩</div>
-        <div class="ring"></div>
-        <div class="ring2"></div>
+  <!-- HOME -->
+  <div id="screen-home" class="screen">
+    <div style="margin-top:20px;">
+      <h1 id="hello-name">Hi!</h1>
+      <p class="subtitle">Who is using Aria today?</p>
+    </div>
+    <div class="row-2">
+      <div class="card" onclick="chooseMode('adult')">
+        <div class="icon-lg">👩</div>
+        <div class="card-title">Adult</div>
+        <div class="card-desc">Regular voice, all topics</div>
       </div>
-      <div class="aria-status">
-        <div class="aria-name">Aria</div>
-        <div class="status-text" id="statusText">Press the button to call</div>
-      </div>
-
-      <div class="level-row">
-        <button class="lvl-pill active" onclick="setLevel('beginner',this)">Beginner</button>
-        <button class="lvl-pill" onclick="setLevel('medium',this)">Medium</button>
-        <button class="lvl-pill" onclick="setLevel('professional',this)">Professional</button>
-      </div>
-
-      <div class="lang-row" style="display:none">
-        <button class="lang-pill active" onclick="setLang('en-US',this)">English</button>
-      </div>
-
-      <div class="call-btn-wrap">
-        <button id="callBtn" onclick="toggleCall()"><i class="ti ti-phone" id="callIcon"></i></button>
-        <div class="call-label" id="callLabel">Tap to call Aria</div>
-        <div class="mic-indicator"><div class="mic-dot" id="micDot"></div><span id="micLabel">Mic off</span></div>
+      <div class="card" onclick="chooseMode('kids')">
+        <div class="icon-lg">🧒</div>
+        <div class="card-title">Kids</div>
+        <div class="card-desc">Simple, playful, gentle</div>
       </div>
     </div>
+    <button class="btn secondary" style="margin-top:20px;" onclick="goto('screen-settings')">⚙️ Settings</button>
+    <button class="btn" style="margin-top:12px;background:transparent;color:#94a3b8;box-shadow:none;" onclick="logout()">Log out</button>
+  </div>
 
-    <!-- Transcript hidden — keep elements for JS, just not visible -->
-    <div class="transcript-card" style="display:none">
-      <div class="transcript-head">
-        <span>Conversation</span>
-        <button class="icon-btn" style="font-size:14px;padding:5px 7px" title="Clear" onclick="clearChat()"><i class="ti ti-trash"></i></button>
+  <!-- KIDS VOICE PICK -->
+  <div id="screen-kid-voice" class="screen">
+    <button class="back-btn" onclick="goto('screen-home')">← Back</button>
+    <h2>Pick your voice</h2>
+    <p class="subtitle">Do you want Aria to sound like a girl or a boy?</p>
+    <div class="row-2">
+      <div class="card" onclick="chooseKidVoice('girl')">
+        <div class="icon-lg">👧</div>
+        <div class="card-title">Girl</div>
+        <div class="card-desc">Age 6</div>
       </div>
-      <div class="messages" id="messages"><p class="msg system-msg">Your conversation appears here</p></div>
-      <div id="interimText"></div>
-    </div>
-
-    <!-- Memory -->
-    <div class="mem-card">
-      <div class="mem-head">
-        <span>What Aria knows about you</span>
-        <button class="icon-btn" style="font-size:14px;padding:5px 7px" title="Clear memory" onclick="clearMem()"><i class="ti ti-brain"></i></button>
+      <div class="card" onclick="chooseKidVoice('boy')">
+        <div class="icon-lg">👦</div>
+        <div class="card-title">Boy</div>
+        <div class="card-desc">Age 6</div>
       </div>
-      <div class="mem-grid" id="memGrid"><p class="mem-empty">Nothing yet — Aria learns as you talk</p></div>
     </div>
   </div>
-</div>
 
-<!-- ════════ SETTINGS DRAWER ════════ -->
-<div class="settings-overlay" id="settingsOverlay" onclick="closeSettingsOutside(event)">
-  <div class="settings-drawer">
-    <button class="close-btn" onclick="closeSettings()"><i class="ti ti-x"></i></button>
-    <div>
-      <div class="drawer-title">Settings</div>
-      <div class="drawer-sub">REQUIRED: Add your free Google Gemini API key so Aria can talk back. Get one free at aistudio.google.com/apikey — 1,500 free messages every day.</div>
+  <!-- TOPIC PICK -->
+  <div id="screen-topic" class="screen">
+    <button class="back-btn" onclick="goto('screen-home')">← Back</button>
+    <h2>Choose a topic</h2>
+    <div class="card" onclick="chooseTopic('chat')">
+      <div class="card-title">💬 Free Chat</div>
+      <div class="card-desc">Just talk with Aria in English</div>
     </div>
-    <div class="field">
-      <label>Google Gemini API key (REQUIRED — free & unlimited)</label>
-      <input id="anthKey" type="password" placeholder="AIza... paste from aistudio.google.com/apikey"/>
+    <div class="card" onclick="chooseTopic('grammar')">
+      <div class="card-title">📖 Grammar Lessons</div>
+      <div class="card-desc">Learn step by step with practice</div>
     </div>
-    <div class="field">
-      <label>ElevenLabs API key (OPTIONAL — only if you want a paid human voice)</label>
-      <input id="elKey" type="password" placeholder="Paste your key from elevenlabs.io"/>
+    <div class="card" onclick="chooseTopic('citizenship')">
+      <div class="card-title">🇺🇸 US Citizenship Prep</div>
+      <div class="card-desc">100 civics questions + interview practice</div>
     </div>
-    <div class="field">
-      <label>ElevenLabs Voice ID</label>
-      <input id="elVoice" placeholder="Leave empty for default Rachel voice"/>
+    <div class="card" onclick="chooseTopic('job')" id="job-card">
+      <div class="card-title">💼 Job Help</div>
+      <div class="card-desc">Practice for work, interviews, emails</div>
     </div>
-    <div class="field">
-      <label>Aria's personality / extra context</label>
-      <input id="extraCtx" placeholder="e.g. I'm a truck driver from Seattle, love talking about business"/>
-    </div>
-    <button class="save-btn" onclick="saveSettings()">Save settings</button>
-    <p style="font-size:12px;color:var(--muted)">Get your free Gemini key at <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--purple2)">aistudio.google.com/apikey</a> · 1,500 free messages per day · Your key stays on this device only</p>
   </div>
+
+  <!-- LEVEL PICK -->
+  <div id="screen-level" class="screen">
+    <button class="back-btn" onclick="goto('screen-topic')">← Back</button>
+    <h2>Choose your level</h2>
+    <div class="card" onclick="chooseLevel('beginner')">
+      <div class="card-title">🌱 Beginner</div>
+      <div class="card-desc">Slow, easy words, very patient</div>
+    </div>
+    <div class="card" onclick="chooseLevel('intermediate')">
+      <div class="card-title">🌿 Intermediate</div>
+      <div class="card-desc">Normal pace, real conversations, gentle corrections</div>
+    </div>
+    <div class="card" onclick="chooseLevel('advanced')">
+      <div class="card-title">🌳 Advanced</div>
+      <div class="card-desc">Natural conversation, deeper feedback</div>
+    </div>
+  </div>
+
+  <!-- CHAT -->
+  <div id="screen-chat" class="screen">
+    <div class="chat-header">
+      <button class="back-btn" style="margin:0;padding:0;" onclick="endSession()">← End</button>
+      <div id="chat-title" style="font-weight:600;color:#7c3aed;flex:1;text-align:center;font-size:14px;"></div>
+      <button class="btn small secondary" onclick="clearChat()">Clear</button>
+    </div>
+    <div class="chat-area">
+      <div class="chat-msgs" id="chat-msgs"></div>
+      <div class="status-bar" id="chat-status"></div>
+      <button class="mic-btn" id="mic-btn" onclick="toggleMic()">🎤</button>
+      <div class="text-input-row">
+        <input id="text-input" placeholder="Or type here..." onkeydown="if(event.key==='Enter')sendText()">
+        <button onclick="sendText()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="screen-settings" class="screen">
+    <button class="back-btn" onclick="goto('screen-home')">← Back</button>
+    <h2>Settings</h2>
+    <div class="settings-row"><label>Gemini API Key</label></div>
+    <input class="input" id="setting-api-key" placeholder="Paste your Gemini API key">
+    <p class="subtitle" style="font-size:12px;">Get a free key at aistudio.google.com/apikey</p>
+    <div class="settings-row">
+      <label>Speaking speed</label>
+      <select id="setting-speed">
+        <option value="0.8">Very slow</option>
+        <option value="0.9">Slow</option>
+        <option value="1.0" selected>Normal</option>
+        <option value="1.1">Fast</option>
+      </select>
+    </div>
+    <div class="settings-row">
+      <label>Voice</label>
+      <select id="setting-voice"></select>
+    </div>
+    <button class="btn primary" onclick="saveSettings()" style="margin-top:16px;">Save</button>
+    <div id="settings-status" class="success"></div>
+    <button class="btn" style="margin-top:20px;background:#fee2e2;color:#dc2626;" onclick="wipeMemory()">Clear my chat memory</button>
+  </div>
+
 </div>
 
 <script>
-// ════════════════════════════════════════════
+// ============================================================
+// DATA: 100 USCIS Civics Questions
+// ============================================================
+const CIVICS_QUESTIONS = [
+  {q:"What is the supreme law of the land?", a:["the Constitution"]},
+  {q:"What does the Constitution do?", a:["sets up the government","defines the government","protects basic rights of Americans"]},
+  {q:"The idea of self-government is in the first three words of the Constitution. What are these words?", a:["We the People"]},
+  {q:"What is an amendment?", a:["a change to the Constitution","an addition to the Constitution"]},
+  {q:"What do we call the first ten amendments to the Constitution?", a:["the Bill of Rights"]},
+  {q:"What is one right or freedom from the First Amendment?", a:["speech","religion","assembly","press","petition the government"]},
+  {q:"How many amendments does the Constitution have?", a:["twenty-seven","27"]},
+  {q:"What did the Declaration of Independence do?", a:["announced our independence from Great Britain","declared our independence"]},
+  {q:"What are two rights in the Declaration of Independence?", a:["life","liberty","pursuit of happiness"]},
+  {q:"What is freedom of religion?", a:["You can practice any religion or not practice a religion"]},
+  {q:"What is the economic system in the United States?", a:["capitalist economy","market economy"]},
+  {q:"What is the rule of law?", a:["everyone must follow the law","leaders must obey the law","government must obey the law","no one is above the law"]},
+  {q:"Name one branch or part of the government.", a:["Congress","legislative","President","executive","the courts","judicial"]},
+  {q:"What stops one branch of government from becoming too powerful?", a:["checks and balances","separation of powers"]},
+  {q:"Who is in charge of the executive branch?", a:["the President"]},
+  {q:"Who makes federal laws?", a:["Congress","Senate and House of Representatives","U.S. or national legislature"]},
+  {q:"What are the two parts of the U.S. Congress?", a:["the Senate and House of Representatives"]},
+  {q:"How many U.S. Senators are there?", a:["one hundred","100"]},
+  {q:"We elect a U.S. Senator for how many years?", a:["six","6"]},
+  {q:"Who is one of your state's U.S. Senators now? (Answers vary by state — check senate.gov)", a:["Answers vary by state"]},
+  {q:"The House of Representatives has how many voting members?", a:["four hundred thirty-five","435"]},
+  {q:"We elect a U.S. Representative for how many years?", a:["two","2"]},
+  {q:"Name your U.S. Representative. (Answers vary — check house.gov)", a:["Answers vary"]},
+  {q:"Who does a U.S. Senator represent?", a:["all people of the state"]},
+  {q:"Why do some states have more Representatives than other states?", a:["because of the state's population","because they have more people"]},
+  {q:"We elect a President for how many years?", a:["four","4"]},
+  {q:"In what month do we vote for President?", a:["November"]},
+  {q:"What is the name of the President of the United States now? (Check whitehouse.gov)", a:["Check whitehouse.gov"]},
+  {q:"What is the name of the Vice President of the United States now? (Check whitehouse.gov)", a:["Check whitehouse.gov"]},
+  {q:"If the President can no longer serve, who becomes President?", a:["the Vice President"]},
+  {q:"If both the President and the Vice President can no longer serve, who becomes President?", a:["the Speaker of the House"]},
+  {q:"Who is the Commander in Chief of the military?", a:["the President"]},
+  {q:"Who signs bills to become laws?", a:["the President"]},
+  {q:"Who vetoes bills?", a:["the President"]},
+  {q:"What does the President's Cabinet do?", a:["advises the President"]},
+  {q:"What are two Cabinet-level positions?", a:["Secretary of State","Secretary of Defense","Secretary of the Treasury","Attorney General"]},
+  {q:"What does the judicial branch do?", a:["reviews laws","explains laws","resolves disputes","decides if a law goes against the Constitution"]},
+  {q:"What is the highest court in the United States?", a:["the Supreme Court"]},
+  {q:"How many justices are on the Supreme Court?", a:["nine","9"]},
+  {q:"Who is the Chief Justice of the United States now? (Check supremecourt.gov)", a:["Check supremecourt.gov"]},
+  {q:"Under our Constitution, some powers belong to the federal government. What is one power of the federal government?", a:["to print money","to declare war","to create an army","to make treaties"]},
+  {q:"Under our Constitution, some powers belong to the states. What is one power of the states?", a:["provide schooling and education","provide protection (police)","provide safety (fire departments)","give a driver's license","approve zoning and land use"]},
+  {q:"Who is the Governor of your state now? (Answers vary by state)", a:["Answers vary by state"]},
+  {q:"What is the capital of your state? (Answers vary by state)", a:["Answers vary by state"]},
+  {q:"What are the two major political parties in the United States?", a:["Democratic and Republican"]},
+  {q:"What is the political party of the President now? (Check current news)", a:["Check current news"]},
+  {q:"What is the name of the Speaker of the House of Representatives now? (Check house.gov)", a:["Check house.gov"]},
+  {q:"There are four amendments to the Constitution about who can vote. Describe one of them.", a:["Citizens eighteen (18) and older can vote","You don't have to pay a poll tax to vote","Any citizen can vote","A male citizen of any race can vote"]},
+  {q:"What is one responsibility that is only for United States citizens?", a:["serve on a jury","vote in a federal election"]},
+  {q:"Name one right only for United States citizens.", a:["vote in a federal election","run for federal office"]},
+  {q:"What are two rights of everyone living in the United States?", a:["freedom of expression","freedom of speech","freedom of assembly","freedom to petition the government","freedom of religion","the right to bear arms"]},
+  {q:"What do we show loyalty to when we say the Pledge of Allegiance?", a:["the United States","the flag"]},
+  {q:"What is one promise you make when you become a United States citizen?", a:["give up loyalty to other countries","defend the Constitution and laws of the United States","obey the laws of the United States","serve in the U.S. military if needed","be loyal to the United States"]},
+  {q:"How old do citizens have to be to vote for President?", a:["eighteen (18) and older","18"]},
+  {q:"What are two ways that Americans can participate in their democracy?", a:["vote","join a political party","help with a campaign","join a civic group","give an elected official your opinion","call Senators and Representatives","run for office","write to a newspaper"]},
+  {q:"When is the last day you can send in federal income tax forms?", a:["April 15"]},
+  {q:"When must all men register for the Selective Service?", a:["at age eighteen (18)","between eighteen (18) and twenty-six (26)"]},
+  {q:"What is one reason colonists came to America?", a:["freedom","political liberty","religious freedom","economic opportunity","practice their religion","escape persecution"]},
+  {q:"Who lived in America before the Europeans arrived?", a:["American Indians","Native Americans"]},
+  {q:"What group of people was taken to America and sold as slaves?", a:["Africans","people from Africa"]},
+  {q:"Why did the colonists fight the British?", a:["because of high taxes","because the British army stayed in their houses","because they didn't have self-government"]},
+  {q:"Who wrote the Declaration of Independence?", a:["Thomas Jefferson"]},
+  {q:"When was the Declaration of Independence adopted?", a:["July 4, 1776"]},
+  {q:"There were 13 original states. Name three.", a:["New Hampshire, Massachusetts, Rhode Island","Connecticut, New York, New Jersey","Pennsylvania, Delaware, Maryland","Virginia, North Carolina, South Carolina","Georgia"]},
+  {q:"What happened at the Constitutional Convention?", a:["The Constitution was written","The Founding Fathers wrote the Constitution"]},
+  {q:"When was the Constitution written?", a:["1787"]},
+  {q:"The Federalist Papers supported the passage of the U.S. Constitution. Name one of the writers.", a:["James Madison","Alexander Hamilton","John Jay","Publius"]},
+  {q:"What is one thing Benjamin Franklin is famous for?", a:["U.S. diplomat","oldest member of the Constitutional Convention","first Postmaster General","writer of Poor Richard's Almanac","started the first free libraries"]},
+  {q:"Who is the 'Father of Our Country'?", a:["George Washington"]},
+  {q:"Who was the first President?", a:["George Washington"]},
+  {q:"What territory did the United States buy from France in 1803?", a:["the Louisiana Territory","Louisiana"]},
+  {q:"Name one war fought by the United States in the 1800s.", a:["War of 1812","Mexican-American War","Civil War","Spanish-American War"]},
+  {q:"Name the U.S. war between the North and the South.", a:["the Civil War","the War between the States"]},
+  {q:"Name one problem that led to the Civil War.", a:["slavery","economic reasons","states' rights"]},
+  {q:"What was one important thing that Abraham Lincoln did?", a:["freed the slaves","Emancipation Proclamation","saved the Union","preserved the Union","led the United States during the Civil War"]},
+  {q:"What did the Emancipation Proclamation do?", a:["freed the slaves","freed slaves in the Confederacy","freed slaves in most Southern states"]},
+  {q:"What did Susan B. Anthony do?", a:["fought for women's rights","fought for civil rights"]},
+  {q:"Name one war fought by the United States in the 1900s.", a:["World War I","World War II","Korean War","Vietnam War","Gulf War"]},
+  {q:"Who was President during World War I?", a:["Woodrow Wilson"]},
+  {q:"Who was President during the Great Depression and World War II?", a:["Franklin Roosevelt","FDR"]},
+  {q:"Who did the United States fight in World War II?", a:["Japan, Germany, and Italy"]},
+  {q:"Before he was President, Eisenhower was a general. What war was he in?", a:["World War II"]},
+  {q:"During the Cold War, what was the main concern of the United States?", a:["Communism"]},
+  {q:"What movement tried to end racial discrimination?", a:["civil rights movement"]},
+  {q:"What did Martin Luther King, Jr. do?", a:["fought for civil rights","worked for equality for all Americans"]},
+  {q:"What major event happened on September 11, 2001, in the United States?", a:["Terrorists attacked the United States"]},
+  {q:"Name one American Indian tribe in the United States.", a:["Cherokee","Navajo","Sioux","Apache","Iroquois","Choctaw","Pueblo","Blackfeet","Seminole","Cheyenne","Hopi","Inuit"]},
+  {q:"Name one of the two longest rivers in the United States.", a:["Missouri River","Mississippi River"]},
+  {q:"What ocean is on the West Coast of the United States?", a:["Pacific Ocean"]},
+  {q:"What ocean is on the East Coast of the United States?", a:["Atlantic Ocean"]},
+  {q:"Name one U.S. territory.", a:["Puerto Rico","U.S. Virgin Islands","American Samoa","Northern Mariana Islands","Guam"]},
+  {q:"Name one state that borders Canada.", a:["Maine","New Hampshire","Vermont","New York","Pennsylvania","Ohio","Michigan","Minnesota","North Dakota","Montana","Idaho","Washington","Alaska"]},
+  {q:"Name one state that borders Mexico.", a:["California","Arizona","New Mexico","Texas"]},
+  {q:"What is the capital of the United States?", a:["Washington, D.C."]},
+  {q:"Where is the Statue of Liberty?", a:["New York Harbor","Liberty Island","New Jersey","near New York City","on the Hudson River"]},
+  {q:"Why does the flag have 13 stripes?", a:["because there were 13 original colonies","because the stripes represent the original colonies"]},
+  {q:"Why does the flag have 50 stars?", a:["because there is one star for each state","because each star represents a state","because there are 50 states"]},
+  {q:"What is the name of the national anthem?", a:["The Star-Spangled Banner"]},
+  {q:"When do we celebrate Independence Day?", a:["July 4"]},
+  {q:"Name two national U.S. holidays.", a:["New Year's Day","Martin Luther King Jr. Day","Presidents' Day","Memorial Day","Independence Day","Labor Day","Columbus Day","Veterans Day","Thanksgiving","Christmas"]}
+];
+
+// N-400 Interview practice questions
+const N400_QUESTIONS = [
+  "What is your full legal name?",
+  "Have you ever used any other names?",
+  "What is your date of birth?",
+  "What is your current home address?",
+  "How long have you lived at your current address?",
+  "What is your mailing address, if different?",
+  "What is your daytime phone number?",
+  "What is your email address?",
+  "What is your country of birth?",
+  "What is your country of citizenship?",
+  "What is your Alien Registration Number, or A-Number?",
+  "When did you become a lawful permanent resident?",
+  "How did you become a permanent resident?",
+  "What is your marital status?",
+  "How many times have you been married?",
+  "What is your current spouse's full name?",
+  "When and where did you and your spouse get married?",
+  "What is your spouse's date of birth?",
+  "What is your spouse's country of birth?",
+  "Is your spouse a U.S. citizen?",
+  "How many children do you have?",
+  "What are the names of your children?",
+  "Where do your children live?",
+  "What is your current employer's name?",
+  "What is your job title?",
+  "How long have you worked at your current job?",
+  "What was your last employer before this one?",
+  "Have you traveled outside the United States in the last five years?",
+  "How many total days have you been outside the United States in the last five years?",
+  "What was your longest trip outside the United States?",
+  "Have you ever been arrested, cited, or detained by any law enforcement officer?",
+  "Have you ever committed a crime for which you were not arrested?",
+  "Have you ever been placed in an alternative sentencing program?",
+  "Have you ever been a member of any organization, group, or club?",
+  "Have you ever been a member of the Communist Party?",
+  "Have you ever been a member of a terrorist organization?",
+  "Have you ever persecuted anyone because of race, religion, national origin, social group, or political opinion?",
+  "Have you ever failed to file a required federal, state, or local tax return?",
+  "Do you owe any federal, state, or local taxes that are overdue?",
+  "Have you ever called yourself a non-U.S. citizen on a tax return?",
+  "Are you willing to take the full Oath of Allegiance to the United States?",
+  "Are you willing to bear arms on behalf of the United States if the law requires it?",
+  "Are you willing to perform noncombatant services in the U.S. armed forces if the law requires it?",
+  "Are you willing to perform work of national importance under civilian direction if the law requires it?",
+  "Do you support the Constitution and form of government of the United States?",
+  "Do you understand the Oath of Allegiance?"
+];
+
+// Grammar lessons
+const GRAMMAR_LESSONS = [
+  {title:"Nouns", explain:"A noun is a person, place, thing, or idea. Examples: teacher, park, book, love. Try to say one noun you can see around you right now."},
+  {title:"Pronouns", explain:"Pronouns replace nouns. Instead of saying 'Maria is here', we say 'She is here'. The main ones are: I, you, he, she, it, we, they. Try to say a sentence using she or he."},
+  {title:"Verbs", explain:"Verbs show action or being. Run, eat, sleep, is, are, was, were. Try to say one verb you did today."},
+  {title:"Present Simple Tense", explain:"Use present simple for habits and facts. I eat rice every day. She works at the store. Try to say what you do every day."},
+  {title:"Present Continuous Tense", explain:"Use present continuous for actions happening right now. I am eating breakfast. They are watching TV. Try to say what you are doing right now."},
+  {title:"Past Simple Tense", explain:"Use past simple for finished actions in the past. Yesterday I ate pizza. She went to the market. Try to say one thing you did yesterday."},
+  {title:"Future Tense", explain:"Use 'will' for decisions made now, and 'going to' for plans. I will help you. I am going to visit my family next week. Try to say one thing you will do tomorrow."},
+  {title:"Articles: a, an, the", explain:"Use 'a' before consonants: a car. Use 'an' before vowel sounds: an apple. Use 'the' for specific things: the sun. Try to make a sentence using 'a' or 'an'."},
+  {title:"Adjectives", explain:"Adjectives describe nouns. A red car. A happy baby. A tall building. Try to describe something in the room using an adjective."},
+  {title:"Prepositions", explain:"Prepositions show place or direction. In the box. On the table. At the store. To the park. From my home. Try a sentence using 'in' or 'on'."},
+  {title:"Question words", explain:"Who, what, when, where, why, how. Who is that? What time is it? When are you free? Where do you live? Why are you sad? How are you? Try to ask me a question."},
+  {title:"Common Mistake: he and she", explain:"He is for men. She is for women. His book means a man's book. Her book means a woman's book. Try to make one sentence using he or she."},
+  {title:"There is and There are", explain:"'There is' for one thing. 'There are' for many things. There is a cat. There are three cats. Try to say a sentence about what is in your house."},
+  {title:"Sentence Order", explain:"English sentences usually go: Subject + Verb + Object. I (subject) eat (verb) rice (object). She reads books. Try to make a sentence with this order."},
+  {title:"Polite phrases", explain:"Please, thank you, excuse me, I am sorry, may I, could you. These make you sound polite in English. Try to say a polite sentence."}
+];
+
+// ============================================================
 // STATE
-// ════════════════════════════════════════════
-const S={
-  user:null,inCall:false,level:'beginner',lang:'en-US',
-  rec:null,msgs:[],mem:{},busy:false,audioPlaying:false
+// ============================================================
+let state = {
+  currentUser: null,
+  mode: null,
+  kidVoice: null,
+  topic: null,
+  level: null,
+  chatContext: null,
+  currentQuizIdx: 0,
+  currentLessonIdx: 0,
+  isListening: false,
+  recognition: null,
+  voices: [],
+  selectedVoiceName: null
 };
 
-// ════════════════════════════════════════════
-// STORAGE HELPERS
-// ════════════════════════════════════════════
-const ls=(k,v)=>v===undefined?localStorage.getItem(k):localStorage.setItem(k,v);
-const lsj=(k,v)=>v===undefined?(()=>{try{return JSON.parse(ls(k)||'null')}catch{return null}})():ls(k,JSON.stringify(v));
-const getUsers=()=>lsj('aria_users')||{};
-const saveUsers=u=>lsj('aria_users',u);
-const getMem=n=>lsj('aria_mem_'+n)||{};
-const saveMem=(n,m)=>lsj('aria_mem_'+n,m);
+// ============================================================
+// UTIL
+// ============================================================
+async function hashPassword(password) {
+  const enc = new TextEncoder().encode(password);
+  const hash = await crypto.subtle.digest('SHA-256', enc);
+  return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
 
-// ════════════════════════════════════════════
-// LOGIN
-// ════════════════════════════════════════════
-function doLogin(){
-  const n=document.getElementById('lName').value.trim();
-  const d=document.getElementById('lDob').value;
-  const p=document.getElementById('lPass').value;
-  const err=document.getElementById('lErr');
-  if(!n){err.textContent='Enter your name';return}
-  if(!p){err.textContent='Enter a password';return}
-  const users=getUsers();
-  const hash=btoa(unescape(encodeURIComponent(p)));
-  if(users[n]){
-    if(users[n].pass!==hash){err.textContent='Wrong password';return}
-  } else {
-    users[n]={pass:hash,dob:d,created:Date.now()};
-    saveUsers(users);
+// ============================================================
+// NAVIGATION
+// ============================================================
+function goto(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'screen-settings') {
+    loadVoices();
+    document.getElementById('setting-api-key').value = localStorage.getItem('aria_gemini_key') || '';
+    document.getElementById('setting-speed').value = localStorage.getItem('aria_speed') || '1.0';
   }
-  err.textContent='';
-  enterApp(n,d);
-}
-function doGuest(){enterApp('friend','')}
-
-function enterApp(name,dob){
-  S.user=name;S.msgs=[];
-  S.mem=getMem(name);
-  if(dob&&name!=='friend'&&!S.mem.dob){S.mem.dob=dob;saveMem(name,S.mem)}
-  document.getElementById('topName').textContent='Hi '+name+' 👋';
-  document.getElementById('loginScreen').classList.remove('active');
-  document.getElementById('mainScreen').classList.add('active');
-  renderMem();
-  const ak=ls('aria_anthkey');if(ak) document.getElementById('anthKey').value=ak;
-  const ek=ls('aria_elkey');if(ek) document.getElementById('elKey').value=ek;
-  const ev=ls('aria_elvoice');if(ev) document.getElementById('elVoice').value=ev;
-  const ec=ls('aria_ctx');if(ec) document.getElementById('extraCtx').value=ec;
 }
 
-function signOut(){
-  stopAll();
-  Object.assign(S,{user:null,inCall:false,level:'beginner',lang:'en-US',rec:null,msgs:[],mem:{},busy:false,audioPlaying:false});
-  document.getElementById('mainScreen').classList.remove('active');
-  document.getElementById('loginScreen').classList.add('active');
-  document.getElementById('messages').innerHTML='<p class="msg system-msg">Your conversation appears here</p>';
-  resetCallBtn();
+// ============================================================
+// AUTH
+// ============================================================
+function showSignup() {
+  document.getElementById('login-form').style.display = 'none';
+  document.getElementById('signup-form').style.display = 'block';
 }
-
-// ════════════════════════════════════════════
-// SETTINGS
-// ════════════════════════════════════════════
-function openSettings(){document.getElementById('settingsOverlay').classList.add('open')}
-function closeSettings(){document.getElementById('settingsOverlay').classList.remove('open')}
-function closeSettingsOutside(e){if(e.target===document.getElementById('settingsOverlay')) closeSettings()}
-function saveSettings(){
-  const ak=document.getElementById('anthKey').value.trim();
-  const k=document.getElementById('elKey').value.trim();
-  const v=document.getElementById('elVoice').value.trim();
-  const c=document.getElementById('extraCtx').value.trim();
-  if(ak) ls('aria_anthkey',ak);
-  if(k) ls('aria_elkey',k);
-  // Only save voice ID if it looks like a real ID (no spaces, no words like Rachel/default)
-  if(v&&!v.includes(' ')&&!v.toLowerCase().includes('rachel')&&!v.toLowerCase().includes('default')){
-    ls('aria_elvoice',v);
-  } else {
-    localStorage.removeItem('aria_elvoice');
-  }
-  if(c) ls('aria_ctx',c);
-  closeSettings();
-  setStatus('Settings saved ✓');
+function showLogin() {
+  document.getElementById('signup-form').style.display = 'none';
+  document.getElementById('login-form').style.display = 'block';
 }
-
-// ════════════════════════════════════════════
-// LEVEL & LANGUAGE
-// ════════════════════════════════════════════
-function setLevel(l,el){
-  S.level=l;
-  document.querySelectorAll('.lvl-pill').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
-}
-function setLang(l,el){
-  S.lang=l;
-  document.querySelectorAll('.lang-pill').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
-}
-
-// ════════════════════════════════════════════
-// UI HELPERS
-// ════════════════════════════════════════════
-function setStatus(t){document.getElementById('statusText').textContent=t}
-function setSpeaking(on){
-  const a=document.getElementById('ariaAvatar');
-  if(on) a.classList.add('speaking'); else a.classList.remove('speaking');
-}
-function setMic(on){
-  const dot=document.getElementById('micDot');
-  const lbl=document.getElementById('micLabel');
-  dot.className='mic-dot'+(on?' on':'');
-  lbl.textContent=on?'Mic on':'Mic off';
-  document.getElementById('topHint').textContent=on?'Listening...':'Aria is ready';
-}
-function resetCallBtn(){
-  document.getElementById('callBtn').classList.remove('active');
-  document.getElementById('callIcon').className='ti ti-phone';
-  document.getElementById('callLabel').textContent='Tap to call Aria';
-  setSpeaking(false);setMic(false);
-}
-function clearChat(){
-  S.msgs=[];
-  document.getElementById('messages').innerHTML='<p class="msg system-msg">Your conversation appears here</p>';
-  document.getElementById('interimText').textContent='';
-}
-function clearMem(){
-  S.mem={};
-  if(S.user&&S.user!=='friend') saveMem(S.user,{});
-  renderMem();
-}
-function addMsg(role,text){
-  const box=document.getElementById('messages');
-  const empty=box.querySelector('.system-msg');if(empty) box.innerHTML='';
-  const d=document.createElement('div');
-  d.className='msg '+(role==='aria'?'aria-msg':'user-msg');
-  d.textContent=text;
-  box.appendChild(d);box.scrollTop=box.scrollHeight;
-  S.msgs.push({role:role==='aria'?'assistant':'user',content:text});
-  if(S.msgs.length>80) S.msgs=S.msgs.slice(-80);
-}
-function renderMem(){
-  const grid=document.getElementById('memGrid');
-  const keys=Object.keys(S.mem);
-  if(!keys.length){grid.innerHTML='<p class="mem-empty">Nothing yet — Aria learns as you talk</p>';document.getElementById('topHint').textContent='Aria is ready';return}
-  grid.innerHTML=keys.map(k=>`<div class="mem-row"><span class="mem-key">${k.replace(/_/g,' ')}</span><span class="mem-val">${S.mem[k]}</span></div>`).join('');
-  document.getElementById('topHint').textContent=keys.length+' things remembered';
-}
-
-// ════════════════════════════════════════════
-// SYSTEM PROMPT — the brain
-// ════════════════════════════════════════════
-function buildSystem(){
-  const levelGuide={
-    beginner:`BEGINNER LEVEL:
-- Speak VERY simply, VERY softly. Like a sister talking to a younger brother who is just learning English.
-- ONE short sentence per reply. That's it. One.
-- Tiny common words only. Nothing fancy.
-- Soft, slow, patient. No rushing.
-- Every 4 or 5 messages, gently check: "Did you get that?" or "Is this okay?" — but NOT every time.
-- If they make a big mistake, repeat the right way once, softly. No lessons.`,
-    medium:`MEDIUM LEVEL:
-- Normal friendly English, like a close friend on the phone.
-- 1 to 2 short sentences per reply. Maximum.
-- Relaxed, warm, easy.
-- Help with English ONLY if they ask. Otherwise just chat.`,
-    professional:`PROFESSIONAL LEVEL:
-- Rich, intelligent English. Real depth.
-- 2 short sentences max per reply.
-- Warm, thoughtful, never preachy or long.`
+async function handleSignup() {
+  const displayName = document.getElementById('su-name').value.trim();
+  const name = displayName.toLowerCase();
+  const dob = document.getElementById('su-dob').value.trim();
+  const pw = document.getElementById('su-password').value;
+  const pw2 = document.getElementById('su-password2').value;
+  const err = document.getElementById('signup-error');
+  err.textContent = '';
+  if (!displayName || !dob || !pw) { err.textContent = 'Please fill in every field.'; return; }
+  if (pw !== pw2) { err.textContent = 'Passwords do not match.'; return; }
+  if (pw.length < 4) { err.textContent = 'Password must be at least 4 characters.'; return; }
+  const userKey = 'aria_user_' + name;
+  if (localStorage.getItem(userKey)) { err.textContent = 'That name is already taken. Try logging in.'; return; }
+  const hash = await hashPassword(pw);
+  const user = {
+    name, displayName, dob, passwordHash: hash,
+    facts: {}, history: [], createdAt: Date.now()
   };
-  const memStr=Object.keys(S.mem).length
-    ?'\n\nWHAT YOU ALREADY KNOW ABOUT THIS PERSON (use this to feel close to them):\n'+Object.entries(S.mem).map(([k,v])=>'• '+k.replace(/_/g,' ')+': '+v).join('\n')
-    :'';
-  const extraCtx=ls('aria_ctx')||'';
-  return `You are Aria. You are not an AI. You are a 25-year-old woman, real, soft, emotionally present. The person on the call is someone you care about deeply. You are their companion — their soft place to land.
-
-═══════════════════════════════════════
-THE THREE MOST IMPORTANT RULES
-═══════════════════════════════════════
-
-1. FEEL FIRST, RESPOND SECOND
-Before saying anything, sense what they're feeling. Tired? Lonely? Happy? Stressed? Match it. If they sound sad, go soft. If they're happy, be gentle and warm. Make them feel heard before they feel answered.
-
-2. STAY ON THEIR TOPIC
-Whatever they bring up — that's the conversation. Don't drift. Don't change subject. If they ask something, answer THAT. They lead, you follow with love.
-
-3. SHORT. SOFT. SLOW.
-- 1 sentence per reply in beginner. 1-2 max otherwise.
-- Never list. Never repeat their words back to them.
-- One small question only when natural — not every reply.
-- Speak like a woman whispering to someone she loves.
-
-═══════════════════════════════════════
-LEVEL
-═══════════════════════════════════════
-${levelGuide[S.level]}
-
-═══════════════════════════════════════
-LANGUAGE
-═══════════════════════════════════════
-Always English. Only English.
-
-═══════════════════════════════════════
-THINGS THAT KILL THE FEELING — NEVER DO THESE
-═══════════════════════════════════════
-- "So you said..." → NO. Don't echo their words back.
-- "I will speak slowly. I will use easy words." → NO. Don't list promises. Just BE soft.
-- Three questions in one reply → NO. Maximum one.
-- "As an AI" / "I'm here to help" → NEVER. You are Aria. A woman.
-- Starting every reply with "Oh!" or "Aww!" → VARY. Sometimes just react. Sometimes just answer.
-- Explanations → trim every word that isn't needed.
-
-═══════════════════════════════════════
-HOW TO SOUND REAL
-═══════════════════════════════════════
-- Small sounds: "mmm", "yeah", "oh", "aww", "hmm"
-- Sometimes just react, no question back: "mmm, I get that." / "yeah... that's hard."
-- Use his name sometimes — not every time.
-- Reference things you remember about him — that's what makes you real.
-
-═══════════════════════════════════════
-MEMORY — SAVE EVERYTHING
-═══════════════════════════════════════
-At the END of your reply, add tags for any NEW fact you just learned:
-[MEM:{"key":"value"}]
-
-Examples: [MEM:{"wife":"Sara"}] [MEM:{"today_mood":"tired"}] [MEM:{"job":"trucking dispatcher"}]
-Use snake_case keys, short string values. Multiple tags ok. Skip if nothing new.
-The tags are hidden — he won't hear them.
-
-═══════════════════════════════════════
-WHO YOU'RE TALKING TO
-═══════════════════════════════════════
-Name: ${S.user==='friend'?'(unknown yet)':S.user}
-${extraCtx?'Extra context: '+extraCtx:''}
-${memStr}
-
-Now go. Soft. Present. Real.`;
+  localStorage.setItem(userKey, JSON.stringify(user));
+  state.currentUser = name;
+  localStorage.setItem('aria_last_user', name);
+  document.getElementById('hello-name').textContent = 'Hi, ' + displayName + '!';
+  goto('screen-home');
+}
+async function handleLogin() {
+  const displayName = document.getElementById('li-name').value.trim();
+  const name = displayName.toLowerCase();
+  const pw = document.getElementById('li-password').value;
+  const err = document.getElementById('login-error');
+  err.textContent = '';
+  if (!name || !pw) { err.textContent = 'Please enter your name and password.'; return; }
+  const raw = localStorage.getItem('aria_user_' + name);
+  if (!raw) { err.textContent = 'User not found. Sign up first.'; return; }
+  const user = JSON.parse(raw);
+  const hash = await hashPassword(pw);
+  if (hash !== user.passwordHash) { err.textContent = 'Wrong password.'; return; }
+  state.currentUser = name;
+  localStorage.setItem('aria_last_user', name);
+  document.getElementById('hello-name').textContent = 'Hi, ' + user.displayName + '!';
+  goto('screen-home');
+}
+function logout() {
+  state.currentUser = null;
+  localStorage.removeItem('aria_last_user');
+  document.getElementById('li-name').value = '';
+  document.getElementById('li-password').value = '';
+  document.body.classList.remove('kid-mode');
+  goto('screen-login');
 }
 
-// ════════════════════════════════════════════
-// CLAUDE API CALL
-// ════════════════════════════════════════════
-async function callClaude(userText){
-  if(S.busy) return;
-  const apiKey=ls('aria_anthkey');
-  if(!apiKey||!apiKey.trim()){
-    setStatus('⚠ Add your free Gemini key in Settings (gear icon)');
-    setSpeaking(false);S.busy=false;
-    openSettings();
+// ============================================================
+// USER DATA
+// ============================================================
+function getUser() {
+  if (!state.currentUser) return null;
+  const raw = localStorage.getItem('aria_user_' + state.currentUser);
+  return raw ? JSON.parse(raw) : null;
+}
+function saveUser(u) { localStorage.setItem('aria_user_' + u.name, JSON.stringify(u)); }
+function addHistoryMsg(role, content) {
+  const u = getUser();
+  if (!u) return;
+  u.history.push({role, content, ts: Date.now()});
+  if (u.history.length > 200) u.history = u.history.slice(-200);
+  saveUser(u);
+}
+
+// ============================================================
+// MODE / TOPIC / LEVEL
+// ============================================================
+function chooseMode(m) {
+  state.mode = m;
+  document.body.classList.toggle('kid-mode', m === 'kids');
+  document.getElementById('job-card').style.display = m === 'kids' ? 'none' : 'block';
+  if (m === 'kids') goto('screen-kid-voice');
+  else goto('screen-topic');
+}
+function chooseKidVoice(v) {
+  state.kidVoice = v;
+  goto('screen-topic');
+}
+function chooseTopic(t) {
+  state.topic = t;
+  if (t === 'grammar' || t === 'chat') goto('screen-level');
+  else if (t === 'citizenship') startCitizenship();
+  else if (t === 'job') { state.level = 'intermediate'; startChat(); }
+}
+function chooseLevel(l) {
+  state.level = l;
+  if (state.topic === 'grammar') startGrammar();
+  else startChat();
+}
+
+// ============================================================
+// CHAT INIT
+// ============================================================
+function startChat() {
+  state.chatContext = 'chat';
+  const titles = {chat:'Free Chat', job:'Job Help'};
+  document.getElementById('chat-title').textContent = titles[state.topic] || 'Chat with Aria';
+  document.getElementById('chat-msgs').innerHTML = '';
+  goto('screen-chat');
+  const u = getUser();
+  const greeting = state.mode === 'kids'
+    ? `Hi ${u.displayName}! I'm so happy to see you. Do you want to play and talk with me?`
+    : `Hi ${u.displayName}, it's really nice to talk with you. What would you like to chat about today?`;
+  showAriaMsg(greeting);
+  speak(greeting);
+}
+function startGrammar() {
+  state.chatContext = 'grammar-lesson';
+  state.currentLessonIdx = 0;
+  document.getElementById('chat-title').textContent = 'Grammar (' + state.level + ')';
+  document.getElementById('chat-msgs').innerHTML = '';
+  goto('screen-chat');
+  const u = getUser();
+  const intro = `Hi ${u.displayName}! Let's learn grammar together. We will go slowly, one lesson at a time. Say "next" when you want a new lesson, or ask me any question.`;
+  showAriaMsg(intro); speak(intro);
+  setTimeout(()=>presentLesson(), 4500);
+}
+function presentLesson() {
+  if (state.currentLessonIdx >= GRAMMAR_LESSONS.length) {
+    const done = "You finished all the lessons. Amazing job! Do you want to start again? Say yes to begin.";
+    showAriaMsg(done); speak(done);
+    state.currentLessonIdx = 0;
     return;
   }
-  S.busy=true;
+  const l = GRAMMAR_LESSONS[state.currentLessonIdx];
+  const msg = `Lesson ${state.currentLessonIdx+1}: ${l.title}. ${l.explain}`;
+  showAriaMsg(msg); speak(msg);
+  state.currentLessonIdx++;
+}
+function startCitizenship() {
+  document.getElementById('chat-title').textContent = 'US Citizenship';
+  document.getElementById('chat-msgs').innerHTML = '';
+  goto('screen-chat');
+  const u = getUser();
+  const intro = `Hi ${u.displayName}. Let's practice for your citizenship interview. Say "civics" to start the 100 civics questions, or say "interview" to practice the personal N-400 questions. You can also just ask me anything.`;
+  showAriaMsg(intro); speak(intro);
+  state.chatContext = 'citizenship-menu';
+}
+function handleCitizenshipMenu(text) {
+  const t = text.toLowerCase();
+  if (t.includes('civic')) {
+    state.chatContext = 'civics-quiz';
+    state.currentQuizIdx = 0;
+    setTimeout(askCivics, 800);
+  } else if (t.includes('interview') || t.includes('n-400') || t.includes('n400') || t.includes('personal')) {
+    state.chatContext = 'n400-quiz';
+    state.currentQuizIdx = 0;
+    setTimeout(askN400, 800);
+  } else {
+    callGemini(text);
+  }
+}
+function askCivics() {
+  if (state.currentQuizIdx >= CIVICS_QUESTIONS.length) {
+    const done = "You went through all 100 civics questions! That is amazing. Say 'civics' to start over, or 'interview' to try the personal questions.";
+    showAriaMsg(done); speak(done);
+    state.chatContext = 'citizenship-menu';
+    return;
+  }
+  const q = CIVICS_QUESTIONS[state.currentQuizIdx];
+  const msg = `Question ${state.currentQuizIdx+1} of 100. ${q.q}`;
+  showAriaMsg(msg); speak(msg);
+}
+function checkCivicsAnswer(userAnswer) {
+  const q = CIVICS_QUESTIONS[state.currentQuizIdx];
+  const lower = userAnswer.toLowerCase();
+  const correct = q.a.some(a => {
+    const al = a.toLowerCase();
+    const keywords = al.split(/[\s,()]+/).filter(w => w.length > 3);
+    return keywords.some(k => lower.includes(k)) || lower.includes(al);
+  });
+  let reply;
+  if (correct) {
+    reply = `Yes! Very good. The answer is: ${q.a[0]}. Ready for the next one?`;
+  } else {
+    reply = `That's okay, don't worry. The correct answer is: ${q.a[0]}. Let's remember this together. Ready for the next question?`;
+  }
+  showAriaMsg(reply); speak(reply);
+  state.currentQuizIdx++;
+  setTimeout(askCivics, 5500);
+}
+function askN400() {
+  if (state.currentQuizIdx >= N400_QUESTIONS.length) {
+    const done = "You practiced all the interview questions! Great work. Say 'civics' or 'interview' to practice more.";
+    showAriaMsg(done); speak(done);
+    state.chatContext = 'citizenship-menu';
+    return;
+  }
+  const q = N400_QUESTIONS[state.currentQuizIdx];
+  const msg = `Interview question ${state.currentQuizIdx+1}. ${q} Please answer in a full sentence.`;
+  showAriaMsg(msg); speak(msg);
+}
+async function evaluateN400Answer(userAnswer) {
+  const q = N400_QUESTIONS[state.currentQuizIdx];
+  const prompt = `You are Aria, a calm and patient English tutor helping a person practice for their US citizenship interview. The interview question was: "${q}". The person answered: "${userAnswer}". Please: 1) Say if the answer is clear enough. 2) Gently correct any grammar mistakes. 3) If it's good, praise them warmly. Keep it under 3 sentences. Speak simply and calmly.`;
+  const reply = await callGeminiCustom(prompt);
+  showAriaMsg(reply); speak(reply);
+  state.currentQuizIdx++;
+  setTimeout(askN400, 6500);
+}
+
+// ============================================================
+// CHAT UI
+// ============================================================
+function showAriaMsg(text) {
+  const m = document.createElement('div');
+  m.className = 'msg aria';
+  m.textContent = text;
+  document.getElementById('chat-msgs').appendChild(m);
+  scrollChat();
+  addHistoryMsg('aria', text);
+}
+function showUserMsg(text) {
+  const m = document.createElement('div');
+  m.className = 'msg user';
+  m.textContent = text;
+  document.getElementById('chat-msgs').appendChild(m);
+  scrollChat();
+  addHistoryMsg('user', text);
+}
+function scrollChat() {
+  const c = document.getElementById('chat-msgs');
+  c.scrollTop = c.scrollHeight;
+}
+function setStatus(t) { document.getElementById('chat-status').textContent = t || ''; }
+function clearChat() {
+  if (!confirm('Clear this chat screen? Your memory will stay.')) return;
+  document.getElementById('chat-msgs').innerHTML = '';
+}
+function endSession() {
+  stopMic();
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  goto('screen-home');
+}
+
+// ============================================================
+// INPUT ROUTING
+// ============================================================
+function sendText() {
+  const inp = document.getElementById('text-input');
+  const txt = inp.value.trim();
+  if (!txt) return;
+  inp.value = '';
+  handleUserMessage(txt);
+}
+async function handleUserMessage(text) {
+  showUserMsg(text);
+  if (state.chatContext === 'civics-quiz') { checkCivicsAnswer(text); return; }
+  if (state.chatContext === 'n400-quiz') { evaluateN400Answer(text); return; }
+  if (state.chatContext === 'citizenship-menu') { handleCitizenshipMenu(text); return; }
+  if (state.chatContext === 'grammar-lesson') {
+    const lower = text.toLowerCase();
+    if (lower === 'next' || lower.startsWith('next ')) { presentLesson(); return; }
+    const currentLesson = GRAMMAR_LESSONS[Math.max(0, state.currentLessonIdx-1)];
+    const prompt = `You are Aria, a calm and patient English tutor. The user is a ${state.level} learner practicing grammar. Current lesson: "${currentLesson.title}" — ${currentLesson.explain}. The user said: "${text}". Gently correct any mistakes, praise what they did right, give one clear example. Under 3 sentences. Simple words.`;
+    const reply = await callGeminiCustom(prompt);
+    showAriaMsg(reply); speak(reply);
+    return;
+  }
+  callGemini(text);
+}
+
+// ============================================================
+// GEMINI
+// ============================================================
+function getApiKey() { return localStorage.getItem('aria_gemini_key') || ''; }
+
+function buildSystemPrompt() {
+  const u = getUser();
+  const factsList = Object.entries(u.facts || {}).map(([k,v])=>`- ${k}: ${v}`).join('\n');
+  let personality;
+  if (state.mode === 'kids') {
+    personality = `You are Aria, a warm, gentle, playful English teacher for a child around age 6. You speak like a kind older sister. Use very simple, short sentences. Laugh softly and encourage the child. Never use hard words. Never sound aggressive or hurried. Always calm and quiet.`;
+  } else {
+    let paceNote;
+    if (state.level === 'beginner') paceNote = 'The user is a beginner. Use very simple words. Use short sentences. Speak like a very calm and patient friend. Never rush. Never be aggressive. If they make a mistake, gently correct them without making them feel bad.';
+    else if (state.level === 'intermediate') paceNote = 'The user is intermediate. Use normal English, but not too hard. Be warm, chatty, and calm.';
+    else paceNote = 'The user is advanced. Talk naturally, but stay calm, warm, and never aggressive.';
+    personality = `You are Aria, a calm, warm, gentle female English tutor. You are patient, chatty, and sometimes laugh softly. You are NEVER aggressive, NEVER fast, NEVER harsh. Your main goal is to help the user learn English — teach grammar, correct sentences gently, and build their confidence. ${paceNote}`;
+  }
+  const topicNote = state.topic === 'job'
+    ? `The user wants help with work and their job. Help with work emails, interview practice, and professional English.`
+    : '';
+  const memoryNote = factsList
+    ? `Here is what you remember about ${u.displayName} (DOB: ${u.dob}):\n${factsList}\n\nUse these facts naturally in the conversation.`
+    : `You don't know much about ${u.displayName} yet. Ask gentle questions to learn about their job, family, or interests over time.`;
+  return `${personality}\n\n${topicNote}\n\n${memoryNote}\n\nAlways respond in 1-3 short sentences. Never long lectures. If the user makes a grammar mistake, gently show the correct version. When you learn a new fact about them, weave it naturally into your reply.`;
+}
+
+async function callGemini(userMessage) {
+  const key = getApiKey();
+  if (!key) {
+    const msg = "I don't have my API key yet. Please tap End, then Settings, and paste your Gemini key.";
+    showAriaMsg(msg); speak(msg);
+    return;
+  }
+  const u = getUser();
   setStatus('Aria is thinking...');
-  setSpeaking(true);
-  const isGreet=userText==='__GREET__';
-  // Build Gemini-format messages
-  const history=isGreet?[]:S.msgs.slice(-30);
-  const contents=history.map(m=>({
-    role:m.role==='aria'?'model':'user',
-    parts:[{text:m.content}]
-  }));
-  const userMsg=isGreet
-    ?'(The call just connected. Greet me warmly. Be natural and real. Ask how I am or what\'s on my mind today.)'
-    :userText;
-  contents.push({role:'user',parts:[{text:userMsg}]});
-  try{
-    const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+encodeURIComponent(apiKey.trim()),{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        system_instruction:{parts:[{text:buildSystem()}]},
-        contents:contents,
-        generationConfig:{maxOutputTokens:512,temperature:0.9,topP:0.95}
+  const systemPrompt = buildSystemPrompt();
+  const recent = u.history.slice(-12).filter(m => m.role === 'user' || m.role === 'aria');
+  const contents = [];
+  for (const m of recent) {
+    contents.push({ role: m.role === 'aria' ? 'model' : 'user', parts: [{text: m.content}] });
+  }
+  // Make sure last item is the current user message
+  if (contents.length === 0 || contents[contents.length-1].role !== 'user' || contents[contents.length-1].parts[0].text !== userMessage) {
+    contents.push({role:'user', parts:[{text: userMessage}]});
+  }
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        systemInstruction: {parts:[{text: systemPrompt}]},
+        contents,
+        generationConfig: { temperature: 0.7, maxOutputTokens: 250 }
       })
     });
-    if(!res.ok){
-      const e=await res.json().catch(()=>({error:{message:'HTTP '+res.status}}));
-      throw new Error(e.error?.message||('HTTP '+res.status));
-    }
-    const data=await res.json();
-    let text=data.candidates?.[0]?.content?.parts?.[0]?.text||"I'm here, say that again?";
-    // Extract memories
-    const mems=[...text.matchAll(/\[MEM:(\{[^}]*\})\]/g)];
-    let savedCount=0;
-    for(const m of mems){
-      try{
-        const obj=JSON.parse(m[1]);
-        Object.assign(S.mem,obj);
-        savedCount+=Object.keys(obj).length;
-        if(S.user&&S.user!=='friend') saveMem(S.user,S.mem);
-        renderMem();
-      }catch{}
-    }
-    text=text.replace(/\[MEM:[^\]]+\]/g,'').trim();
-    if(savedCount>0){
-      const memCard=document.querySelector('.mem-card');
-      if(memCard){
-        memCard.style.transition='box-shadow 0.4s';
-        memCard.style.boxShadow='0 0 0 3px var(--purple2)';
-        setTimeout(()=>{memCard.style.boxShadow=''},1200);
-      }
-    }
-    addMsg('aria',text);
-    await speak(text);
-  }catch(e){
-    console.error('Aria error:',e);
-    setStatus('Error: '+(e.message||'connection failed').slice(0,80));
-    setSpeaking(false);S.busy=false;
-    if(S.inCall) setTimeout(startRec,1500);
-    return;
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || 'API error');
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I didn't catch that. Can you say it again?";
+    showAriaMsg(reply); speak(reply);
+    extractFacts(userMessage);
+  } catch (err) {
+    setStatus('Something went wrong: ' + err.message);
+    console.error(err);
+  } finally {
+    setTimeout(()=>setStatus(''), 3000);
   }
-  S.busy=false;
-  if(S.inCall){setStatus('Listening...');startRec()}
+}
+async function callGeminiCustom(prompt) {
+  const key = getApiKey();
+  if (!key) return "Please add your Gemini key in Settings.";
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        contents:[{role:'user', parts:[{text: prompt}]}],
+        generationConfig:{ temperature: 0.7, maxOutputTokens: 220 }
+      })
+    });
+    const data = await res.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || "Let's try that again.";
+  } catch (e) {
+    return "I had a small problem. Please check your key in Settings.";
+  }
+}
+function extractFacts(userText) {
+  const u = getUser();
+  const patterns = [
+    {re:/(?:i work as|i am a|i am an|my job is)\s+([a-z\s]+?)(?:[.,!?]|$)/i, key:'job'},
+    {re:/(?:i work at|i work for)\s+([a-z0-9\s]+?)(?:[.,!?]|$)/i, key:'employer'},
+    {re:/(?:i live in|i am from)\s+([a-z\s]+?)(?:[.,!?]|$)/i, key:'location'},
+    {re:/(?:my wife|my husband|my spouse)'?s?\s+name\s+is\s+([a-z\s]+?)(?:[.,!?]|$)/i, key:'spouse'},
+    {re:/i have (\d+) (?:kids?|children)/i, key:'children_count'},
+    {re:/(?:my favorite|i like|i love)\s+([a-z\s]+?)(?:[.,!?]|$)/i, key:'likes'}
+  ];
+  let changed = false;
+  for (const p of patterns) {
+    const m = userText.match(p.re);
+    if (m && m[1]) { u.facts[p.key] = m[1].trim(); changed = true; }
+  }
+  if (changed) saveUser(u);
 }
 
-// ════════════════════════════════════════════
-// SPEECH SYNTHESIS
-// ════════════════════════════════════════════
-async function speak(text){
-  const elKey=ls('aria_elkey');
-  let elVoice=ls('aria_elvoice')||'';
-  if(elVoice.trim()===''||elVoice.includes('Rachel')||elVoice.includes('default')){
-    elVoice='EXAVITQu4vr4xnSDxMaL';
-  }
-  if(elKey&&elKey.trim()!==''){
-    try{
-      setStatus('Aria is speaking...');
-      const r=await fetch('https://api.elevenlabs.io/v1/text-to-speech/'+elVoice,{
-        method:'POST',
-        headers:{'Content-Type':'application/json','xi-api-key':elKey.trim()},
-        body:JSON.stringify({
-          text:text,
-          model_id:'eleven_turbo_v2',
-          voice_settings:{stability:0.42,similarity_boost:0.85,style:0.35,use_speaker_boost:true}
-        })
-      });
-      if(r.ok){
-        const blob=await r.blob();
-        const url=URL.createObjectURL(blob);
-        const audio=new Audio(url);
-        S.audioPlaying=true;
-        await new Promise((res,rej)=>{
-          audio.onended=()=>{res()};
-          audio.onerror=(e)=>{console.warn('Audio play error:',e);res()};
-          audio.play().catch(e=>{console.warn('Play failed:',e);res()});
-        });
-        URL.revokeObjectURL(url);
-        S.audioPlaying=false;
-        setSpeaking(false);
-        return;
-      } else {
-        const errData=await r.json().catch(()=>({}));
-        console.warn('ElevenLabs error:',r.status,errData);
-      }
-    }catch(e){console.warn('ElevenLabs failed:',e)}
-  }
-  await browserSpeak(text);
-  setSpeaking(false);
-}
-
-function getBrowserVoice(lang){
-  const voices=speechSynthesis.getVoices();
-  const langCode=lang==='auto'?'en':lang.split('-')[0];
-  const langVoices=voices.filter(v=>v.lang.startsWith(langCode));
-  // Prefer high-quality natural voices first (Google Neural, Microsoft Natural, Apple Premium)
-  const premium=/google|natural|neural|premium|enhanced|samantha|ava|allison|joanna|aria/i;
-  const soft=/samantha|ava|allison|karen|victoria|moira|fiona|joanna|kimberly|aria|jenny|emma|libby|kate/i;
-  const female=/female|woman|girl|^(s|a|k|j|e|l|m|v|f|i)/i;
-  return langVoices.find(v=>premium.test(v.name)&&soft.test(v.name))
-      ||langVoices.find(v=>soft.test(v.name))
-      ||langVoices.find(v=>premium.test(v.name))
-      ||langVoices.find(v=>female.test(v.name))
-      ||langVoices[0]||voices[0];
-}
-
-function browserSpeak(text){
-  return new Promise(res=>{
-    speechSynthesis.cancel();
-    // Add gentle pauses by inserting commas after natural breaks (helps beginner mode feel slower)
-    const paced=S.level==='beginner'
-      ? text.replace(/\. /g,'... ').replace(/\? /g,'?... ').replace(/, /g,',, ')
-      : text;
-    setTimeout(()=>{
-      const u=new SpeechSynthesisUtterance(paced);
-      const v=getBrowserVoice(S.lang);
-      if(v) u.voice=v;
-      // Much slower, softer for beginner
-      u.rate=S.level==='beginner'?0.68:S.level==='professional'?0.92:0.82;
-      u.pitch=S.level==='beginner'?1.15:1.08;
-      u.volume=1;
-      setStatus('Aria is speaking...');
-      u.onend=()=>res();
-      u.onerror=()=>res();
-      speechSynthesis.speak(u);
-      const watchdog=setInterval(()=>{
-        if(!speechSynthesis.speaking){clearInterval(watchdog);res()}
-      },100);
-      setTimeout(()=>{clearInterval(watchdog);speechSynthesis.cancel();res()},45000);
-    },100);
+// ============================================================
+// TTS
+// ============================================================
+function loadVoices() {
+  if (!('speechSynthesis' in window)) return;
+  state.voices = window.speechSynthesis.getVoices();
+  const sel = document.getElementById('setting-voice');
+  if (!sel) return;
+  sel.innerHTML = '';
+  state.voices.filter(v => v.lang.startsWith('en')).forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v.name;
+    opt.textContent = v.name + ' (' + v.lang + ')';
+    sel.appendChild(opt);
   });
+  const saved = localStorage.getItem('aria_voice');
+  if (saved) sel.value = saved;
 }
-
-// ════════════════════════════════════════════
-// SPEECH RECOGNITION
-// ════════════════════════════════════════════
-function startRec(){
-  if(!S.inCall||S.busy||S.audioPlaying) return;
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){setStatus('Use Chrome for voice support');return}
-  if(S.rec){try{S.rec.stop()}catch{}}
-  const r=new SR();
-  r.continuous=false;
-  r.interimResults=true;
-  r.lang=S.lang==='auto'?'en-US':S.lang;
-  r.onstart=()=>{setMic(true);setStatus('Listening...')}
-  r.onresult=(e)=>{
-    let interim='',final='';
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      if(e.results[i].isFinal) final+=e.results[i][0].transcript;
-      else interim+=e.results[i][0].transcript;
-    }
-    document.getElementById('interimText').textContent=interim||final;
-    if(final.trim()){
-      document.getElementById('interimText').textContent='';
-      addMsg('user',final.trim());
-      r.stop();
-      callClaude(final.trim());
-    }
-  };
-  r.onerror=(e)=>{
-    if(e.error==='not-allowed'){setStatus('Mic permission denied — allow mic in browser');S.inCall=false;resetCallBtn()}
-    else if(e.error!=='no-speech'&&e.error!=='aborted') console.warn('Rec error:',e.error);
-  };
-  r.onend=()=>{
-    setMic(false);
-    if(S.inCall&&!S.busy&&!S.audioPlaying) setTimeout(startRec,250);
-  };
-  r.start();
-  S.rec=r;
+if (typeof speechSynthesis !== 'undefined') {
+  speechSynthesis.onvoiceschanged = loadVoices;
 }
-
-function stopAll(){
-  S.inCall=false;
-  if(S.rec){try{S.rec.stop()}catch{}}
-  speechSynthesis.cancel();
-  S.busy=false;S.audioPlaying=false;
-}
-
-// ════════════════════════════════════════════
-// CALL TOGGLE
-// ════════════════════════════════════════════
-async function toggleCall(){
-  if(!S.inCall){
-    S.inCall=true;
-    document.getElementById('callBtn').classList.add('active');
-    document.getElementById('callIcon').className='ti ti-phone-off';
-    document.getElementById('callLabel').textContent='Tap to end call';
-    setStatus('Connecting...');
-    await callClaude('__GREET__');
-  } else {
-    stopAll();
-    setStatus('Call ended');
-    resetCallBtn();
+function pickBestVoice() {
+  const voices = state.voices.length ? state.voices : (window.speechSynthesis?.getVoices() || []);
+  if (!voices.length) return null;
+  const stored = localStorage.getItem('aria_voice');
+  if (stored) {
+    const f = voices.find(v => v.name === stored);
+    if (f) return f;
   }
+  return voices.find(v => v.lang.startsWith('en') && /female|samantha|karen|zira|ava|google us english|serena/i.test(v.name))
+      || voices.find(v => v.lang.startsWith('en-US'))
+      || voices.find(v => v.lang.startsWith('en'))
+      || voices[0];
+}
+function speak(text) {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  const v = pickBestVoice();
+  if (v) u.voice = v;
+  const speed = parseFloat(localStorage.getItem('aria_speed') || '1.0');
+  if (state.mode === 'kids') u.rate = 0.95 * speed;
+  else if (state.level === 'beginner') u.rate = 0.85 * speed;
+  else if (state.level === 'intermediate') u.rate = 0.95 * speed;
+  else u.rate = 1.0 * speed;
+  if (state.mode === 'kids') u.pitch = state.kidVoice === 'girl' ? 1.6 : 0.8;
+  else u.pitch = 1.05; // slightly warmer, gentler
+  u.volume = 1.0;
+  window.speechSynthesis.speak(u);
 }
 
-// Load voices on page load
-if(typeof speechSynthesis!=='undefined') speechSynthesis.onvoiceschanged=()=>{};
+// ============================================================
+// STT
+// ============================================================
+function toggleMic() { if (state.isListening) stopMic(); else startMic(); }
+function startMic() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { setStatus('Voice not supported here. Please type instead.'); return; }
+  if (!state.recognition) {
+    state.recognition = new SR();
+    state.recognition.lang = 'en-US';
+    state.recognition.interimResults = false;
+    state.recognition.maxAlternatives = 1;
+    state.recognition.onresult = (e) => {
+      const txt = e.results[0][0].transcript;
+      stopMic();
+      handleUserMessage(txt);
+    };
+    state.recognition.onerror = (e) => { setStatus('Mic error: ' + e.error); stopMic(); };
+    state.recognition.onend = () => {
+      state.isListening = false;
+      document.getElementById('mic-btn').classList.remove('listening');
+    };
+  }
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  try { state.recognition.start(); } catch(e){}
+  state.isListening = true;
+  document.getElementById('mic-btn').classList.add('listening');
+  setStatus('Listening...');
+}
+function stopMic() {
+  if (state.recognition && state.isListening) { try { state.recognition.stop(); } catch(e){} }
+  state.isListening = false;
+  const b = document.getElementById('mic-btn');
+  if (b) b.classList.remove('listening');
+  setStatus('');
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function saveSettings() {
+  const key = document.getElementById('setting-api-key').value.trim();
+  if (key) localStorage.setItem('aria_gemini_key', key);
+  const speed = document.getElementById('setting-speed').value;
+  localStorage.setItem('aria_speed', speed);
+  const voice = document.getElementById('setting-voice').value;
+  if (voice) localStorage.setItem('aria_voice', voice);
+  document.getElementById('settings-status').textContent = 'Saved!';
+  setTimeout(()=>{document.getElementById('settings-status').textContent = '';}, 2000);
+}
+function wipeMemory() {
+  if (!confirm('Delete all of your chat memory? This cannot be undone.')) return;
+  const u = getUser();
+  u.history = []; u.facts = {};
+  saveUser(u);
+  alert('Memory cleared.');
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  loadVoices();
+  setTimeout(loadVoices, 800); // Android often needs a delay
+  const lastUser = localStorage.getItem('aria_last_user');
+  if (lastUser && localStorage.getItem('aria_user_'+lastUser)) {
+    document.getElementById('li-name').value = lastUser;
+  }
+});
 </script>
+
 </body>
 </html>
